@@ -1,47 +1,115 @@
 package com.pararam2006.tseletrack
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.pararam2006.tseletrack.core.Role
 import com.pararam2006.tseletrack.core.Route
-import com.pararam2006.tseletrack.ui.company.CompanyScreen
+import com.pararam2006.tseletrack.ui.admin.AdminRoot
+import com.pararam2006.tseletrack.ui.company.CompanyRoot
 import com.pararam2006.tseletrack.ui.login.LoginScreen
-import com.pararam2006.tseletrack.ui.region.RegionScreen
-import com.pararam2006.tseletrack.ui.student.StudentScreen
-import com.pararam2006.tseletrack.ui.university.UniversityScreen
+import com.pararam2006.tseletrack.ui.registration.RegistrationScreen
+import com.pararam2006.tseletrack.ui.student.StudentRoot
+import com.pararam2006.tseletrack.ui.university.UniversityRoot
+import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
+import com.pararam2006.tseletrack.ui.session.SessionViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MainNavGraph() {
+    val sessionViewModel = koinViewModel<SessionViewModel>()
+    val sessionState by sessionViewModel.uiState.collectAsStateWithLifecycle()
+    if (sessionState.isChecking) {
+        AppLoadingScreen(title = "Tseletrack")
+        return
+    }
+
     val navController = rememberNavController()
-    NavHost(navController, startDestination = Route.Login) {
+    val startDestination = sessionState.role?.toRoute() ?: Route.Login
+    NavHost(navController, startDestination = startDestination) {
         composable<Route.Login> {
-            LoginScreen(onLoginSuccess = { role: Role ->
-                when (role) {
-                    Role.Student -> navController.navigate(Route.Student)
-                    Role.University -> navController.navigate(Route.University)
-                    Role.Company -> navController.navigate(Route.Company)
-                    Role.Admin -> navController.navigate(Route.Region)
-                }
-            })
+            LoginScreen(
+                onLoginSuccess = { role: Role ->
+                    sessionViewModel.onAuthenticated(role)
+                    when (role) {
+                        Role.Student -> navController.navigateToRole(Route.Student)
+                        Role.University -> navController.navigateToRole(Route.University)
+                        Role.Company -> navController.navigateToRole(Route.Company)
+                        Role.Admin -> navController.navigateToRole(Route.Admin)
+                    }
+                },
+                onRegistrationClick = {
+                    navController.navigate(Route.Registration)
+                },
+            )
+        }
+
+        composable<Route.Registration> {
+            RegistrationScreen(
+                onBack = navController::popBackStack,
+                onLoginClick = {
+                    navController.popBackStack()
+                },
+                onRegistrationSuccess = { role ->
+                    sessionViewModel.onAuthenticated(role)
+                    navController.navigateToRole(role.toRoute())
+                },
+            )
         }
 
         composable<Route.Student> {
-            StudentScreen()
+            StudentRoot(
+                onLogout = {
+                    sessionViewModel.onLoggedOut()
+                    navController.navigateToLogin()
+                },
+            )
         }
 
         composable<Route.University> {
-            UniversityScreen()
+            UniversityRoot(onLogout = {
+                sessionViewModel.onLoggedOut()
+                navController.navigateToLogin()
+            })
         }
 
         composable<Route.Company> {
-            CompanyScreen()
+            CompanyRoot(onLogout = {
+                sessionViewModel.onLoggedOut()
+                navController.navigateToLogin()
+            })
         }
 
-        composable<Route.Region> {
-            RegionScreen()
+        composable<Route.Admin> {
+            AdminRoot(onLogout = {
+                sessionViewModel.onLoggedOut()
+                navController.navigateToLogin()
+            })
         }
     }
 }
 
+private fun Role.toRoute(): Route = when (this) {
+    Role.Student -> Route.Student
+    Role.University -> Route.University
+    Role.Company -> Route.Company
+    Role.Admin -> Route.Admin
+}
+
+private fun androidx.navigation.NavHostController.navigateToRole(
+    destination: Route,
+) {
+    navigate(destination) {
+        popUpTo<Route.Login> { inclusive = true }
+    }
+}
+
+private fun androidx.navigation.NavHostController.navigateToLogin() {
+    navigate(Route.Login) {
+        popUpTo(graph.id) { inclusive = true }
+        launchSingleTop = true
+    }
+}

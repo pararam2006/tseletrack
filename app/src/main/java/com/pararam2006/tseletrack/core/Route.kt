@@ -1,17 +1,30 @@
 package com.pararam2006.tseletrack.core
 
+import kotlinx.serialization.Serializable
+
 sealed interface Route {
-    object Login: Route
-    object Registration: Route
-    object Company: Route
-    object Student: Route
-    object University: Route
-    object Region: Route // навигация от Admin
+    @Serializable
+    data object Login : Route
+
+    @Serializable
+    data object Registration : Route
+
+    @Serializable
+    data object Company : Route
+
+    @Serializable
+    data object Student : Route
+
+    @Serializable
+    data object University : Route
+
+    @Serializable
+    data object Admin : Route
 }
 
-sealed interface Role {
-    object Company: Route
-    object Student: Route
-    object University: Route
-    object Admin: Route // навигация на Region
+enum class Role {
+    Company,
+    Student,
+    University,
+    Admin,
 }

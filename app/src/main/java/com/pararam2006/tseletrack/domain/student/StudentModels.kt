@@ -90,10 +90,48 @@ data class AdmissionStatus(
     val warning: String?,
 )
 
-data class StudentTask(
+enum class StudentDocumentType {
+    TargetContract,
+    EnrollmentOrder,
+    EducationResults,
+    EmploymentConfirmation,
+}
+
+enum class StudentDocumentStatus {
+    Unavailable,
+    AwaitingUpload,
+    UnderReview,
+    ChangesRequested,
+    Accepted,
+    Available,
+}
+
+data class StudentDocument(
     val id: String,
+    val type: StudentDocumentType,
     val title: String,
-    val isCompleted: Boolean,
+    val description: String,
+    val status: StudentDocumentStatus,
+    val fileName: String? = null,
+    val updatedAt: String? = null,
+    val downloadUrl: String? = null,
+)
+
+data class StudentDocumentUpload(
+    val fileName: String,
+    val mimeType: String?,
+    val sizeBytes: Long?,
+    val content: StudentDocumentContent? = null,
+)
+
+fun interface StudentDocumentContent {
+    suspend fun readBytes(): ByteArray
+}
+
+data class DownloadedDocument(
+    val fileName: String,
+    val contentType: String,
+    val bytes: ByteArray,
 )
 
 data class StudentProfile(
@@ -107,6 +145,5 @@ data class StudentDashboard(
     val routeProgressPercent: Int,
     val routeStages: List<RouteStage>,
     val universities: List<University>,
-    val tasks: List<StudentTask>,
     val profile: StudentProfile,
 )

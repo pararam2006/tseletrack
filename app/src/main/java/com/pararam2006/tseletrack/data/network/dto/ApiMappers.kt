@@ -16,6 +16,8 @@ import com.pararam2006.tseletrack.domain.role.SystemEvent
 import com.pararam2006.tseletrack.domain.role.UniversityDashboard
 import com.pararam2006.tseletrack.domain.role.UniversityStudentItem
 import com.pararam2006.tseletrack.domain.student.RouteStage
+import com.pararam2006.tseletrack.domain.student.AcademicPerformance
+import com.pararam2006.tseletrack.domain.student.AcademicResult
 import com.pararam2006.tseletrack.domain.student.AdmissionSourceKind
 import com.pararam2006.tseletrack.domain.student.AdmissionState
 import com.pararam2006.tseletrack.domain.student.AdmissionStatus
@@ -23,11 +25,13 @@ import com.pararam2006.tseletrack.domain.student.RouteStageStatus
 import com.pararam2006.tseletrack.domain.student.RouteStageType
 import com.pararam2006.tseletrack.domain.student.StudentDashboard
 import com.pararam2006.tseletrack.domain.student.StudentProfile
-import com.pararam2006.tseletrack.domain.student.StudentTask
 import com.pararam2006.tseletrack.domain.student.University
 import com.pararam2006.tseletrack.domain.student.TargetOffer
 import com.pararam2006.tseletrack.domain.student.TargetOfferCatalog
 import com.pararam2006.tseletrack.domain.student.TargetOfferSelection
+import com.pararam2006.tseletrack.domain.student.StudentDocument
+import com.pararam2006.tseletrack.domain.student.StudentDocumentStatus
+import com.pararam2006.tseletrack.domain.student.StudentDocumentType
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -56,7 +60,6 @@ internal fun StudentDashboardDto.toDomain(): StudentDashboard {
         },
         routeStages = visibleStages,
         universities = universities.map(UniversityDto::toDomain),
-        tasks = tasks.map(StudentTaskDto::toDomain),
         profile = profile.toDomain(),
     )
 }
@@ -156,10 +159,24 @@ internal fun AdmissionStatusDto.toDomain() = AdmissionStatus(
     warning = warning,
 )
 
-private fun StudentTaskDto.toDomain() = StudentTask(
-    id = id.toString(),
-    title = title,
-    isCompleted = isCompleted,
+internal fun AcademicPerformanceDto.toDomain() = AcademicPerformance(
+    recordBookNumberMasked = recordBookNumberMasked,
+    groupTitle = groupTitle,
+    results = results.map { result ->
+        AcademicResult(
+            semester = result.semester.coerceAtLeast(1),
+            discipline = result.discipline,
+            points = result.points?.takeIf(String::isNotBlank),
+            grade = result.grade?.takeIf(String::isNotBlank),
+            teacher = result.teacher?.takeIf(String::isNotBlank),
+            retakeInfo = result.retakeInfo?.takeIf(String::isNotBlank),
+            canBeRecredited = result.canBeRecredited,
+        )
+    },
+    fetchedAt = fetchedAt?.toDisplayDate(),
+    isStale = isStale,
+    warning = warning,
+    sourceUrl = sourceUrl,
 )
 
 private fun StudentProfileDto.toDomain() = StudentProfile(
@@ -167,6 +184,40 @@ private fun StudentProfileDto.toDomain() = StudentProfile(
     avatarLetter = avatarLetter.ifBlank { displayName.firstOrNull()?.uppercase() ?: "?" },
     role = role,
     documentCount = documentCount.coerceAtLeast(0),
+)
+
+internal fun RouteDocumentDto.toDomain(): StudentDocument = StudentDocument(
+    id = id.toString(),
+    type = when (documentType.lowercase()) {
+        "target_contract" -> StudentDocumentType.TargetContract
+        "enrollment_order" -> StudentDocumentType.EnrollmentOrder
+        "education_results" -> StudentDocumentType.EducationResults
+        "employment_confirmation" -> StudentDocumentType.EmploymentConfirmation
+        else -> throw ApiException(
+            ApiErrorKind.InvalidResponse,
+            "Сервер вернул неизвестный тип документа: $documentType",
+        )
+    },
+    title = title,
+    description = when (documentType.lowercase()) {
+        "target_contract" ->
+            "Подписанный PDF проверяет сотрудник ТулГУ. После подтверждения начнётся этап обучения."
+        else -> "Документ образовательного маршрута."
+    },
+    status = when (status.lowercase()) {
+        "awaiting_upload" -> StudentDocumentStatus.AwaitingUpload
+        "under_review" -> StudentDocumentStatus.UnderReview
+        "changes_requested" -> StudentDocumentStatus.ChangesRequested
+        "accepted" -> StudentDocumentStatus.Accepted
+        "available" -> StudentDocumentStatus.Available
+        else -> throw ApiException(
+            ApiErrorKind.InvalidResponse,
+            "Сервер вернул неизвестный статус документа: $status",
+        )
+    },
+    fileName = fileName,
+    updatedAt = "Обновлён ${updatedAt.toDisplayDate()}",
+    downloadUrl = downloadUrl,
 )
 
 internal fun UniversityDashboardDto.toDomain() = UniversityDashboard(
@@ -178,7 +229,10 @@ internal fun UniversityDashboardDto.toDomain() = UniversityDashboard(
             id = it.id.toString(),
             studentName = it.studentName,
             avatarLetter = it.avatarLetter,
-            signedAt = "Договор подписан ${it.signedAt.toDisplayDate()}",
+            signedAt = "Загружен ${it.signedAt.toDisplayDate()}",
+            fileName = it.fileName,
+            documentId = it.documentId?.toString(),
+            documentSizeBytes = it.documentSizeBytes,
         )
     },
     students = students.map {
@@ -212,14 +266,13 @@ private fun CandidateDto.toDomain() = CandidateItem(
 internal fun CandidateStatus.toApiValue(): String = when (this) {
     CandidateStatus.Education -> "education"
     CandidateStatus.Employment -> "employment"
-    CandidateStatus.Retention -> "retention"
     CandidateStatus.Completed -> "completed"
 }
 
 private fun String.toCandidateStatus(): CandidateStatus = when (lowercase()) {
     "education" -> CandidateStatus.Education
     "employment" -> CandidateStatus.Employment
-    "retention" -> CandidateStatus.Retention
+    "retention" -> CandidateStatus.Completed
     "completed" -> CandidateStatus.Completed
     else -> throw ApiException(ApiErrorKind.InvalidResponse, "Неизвестный статус кандидата: $this")
 }

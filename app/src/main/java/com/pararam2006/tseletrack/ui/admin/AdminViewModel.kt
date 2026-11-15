@@ -60,10 +60,6 @@ class AdminViewModel(
 
     fun openProfileRow(index: Int) = Unit
 
-    fun logout() {
-        viewModelScope.launch { repository.logout() }
-    }
-
     fun retry() = loadDashboard()
 
     private fun loadDashboard() {

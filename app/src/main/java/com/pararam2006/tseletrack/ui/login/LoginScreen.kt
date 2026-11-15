@@ -45,6 +45,7 @@ import com.pararam2006.tseletrack.ui.theme.AppShapes
 import com.pararam2006.tseletrack.ui.theme.AppTextStyles
 import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
+import com.pararam2006.tseletrack.BuildConfig
 import com.pararam2006.tseletrack.core.Role
 import com.pararam2006.tseletrack.ui.theme.TseletrackTheme
 import com.pararam2006.tseletrack.ui.theme.tseletrackBg
@@ -163,6 +164,54 @@ fun LoginScreen(
                 color = tseletrackWhite,
                 style = AppTextStyles.bodyMediumStrong,
             )
+        }
+
+        if (BuildConfig.DEBUG) {
+            Spacer(modifier = Modifier.height(Dimension.Spacing.large))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(tseletrackWhite)
+                    .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.large)
+                    .clickable(enabled = !state.isSubmitting, onClick = viewModel::startStudentDemo),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.login_student_demo),
+                    color = tseletrackInk,
+                    style = AppTextStyles.bodyCompactStrong,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(Dimension.Spacing.small))
+
+//            Text(
+//                text = stringResource(R.string.login_student_demo_hint),
+//                color = tseletrackMut,
+//                style = MaterialTheme.typography.bodySmall,
+//            )
+
+            Spacer(modifier = Modifier.height(Dimension.Spacing.small))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(tseletrackWhite)
+                    .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.large)
+                    .clickable(enabled = !state.isSubmitting, onClick = viewModel::startUniversityDemo),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.login_university_demo),
+                    color = tseletrackInk,
+                    style = AppTextStyles.bodyCompactStrong,
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(Dimension.Spacing.xxl))

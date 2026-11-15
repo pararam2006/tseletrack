@@ -49,6 +49,7 @@ internal fun UniversityQueueScreen(
     dashboard: UniversityDashboard,
     onConfirm: (String) -> Unit,
     onDecline: (String) -> Unit,
+    onOpenDocument: (String) -> Unit,
 ) {
     AppScreen(title = "Очередь договоров") {
         LazyColumn(
@@ -98,6 +99,7 @@ internal fun UniversityQueueScreen(
                     item = contract,
                     onConfirm = { onConfirm(contract.id) },
                     onDecline = { onDecline(contract.id) },
+                    onOpenDocument = { onOpenDocument(contract.id) },
                 )
             }
         }
@@ -109,6 +111,7 @@ private fun ContractQueueCard(
     item: ContractQueueItem,
     onConfirm: () -> Unit,
     onDecline: () -> Unit,
+    onOpenDocument: () -> Unit,
 ) {
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -137,6 +140,14 @@ private fun ContractQueueCard(
                     color = tseletrackMut,
                     fontSize = 11.sp,
                 )
+                item.fileName?.let { fileName ->
+                    Text(
+                        text = fileName,
+                        color = tseletrackMut,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                    )
+                }
             }
         }
         Spacer(Modifier.height(Dimension.Spacing.medium))
@@ -150,6 +161,14 @@ private fun ContractQueueCard(
             fontWeight = FontWeight.Medium,
         )
         Spacer(Modifier.height(Dimension.Spacing.medium))
+        if (item.documentId != null && item.fileName != null) {
+            AppOutlinedButton(
+                text = "Открыть PDF",
+                onClick = onOpenDocument,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(Dimension.Spacing.medium))
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge)) {
             AppPrimaryButton(
                 text = "Подтвердить договор",
@@ -157,8 +176,9 @@ private fun ContractQueueCard(
                 modifier = Modifier.weight(1f),
             )
             AppOutlinedButton(
-                text = "Отзыв",
+                text = "На доработку",
                 onClick = onDecline,
+                modifier = Modifier.height(Dimension.Size.button),
             )
         }
     }

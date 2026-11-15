@@ -1,6 +1,7 @@
 package com.pararam2006.tseletrack
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
@@ -29,6 +30,11 @@ fun MainNavGraph() {
     }
 
     val navController = rememberNavController()
+    LaunchedEffect(sessionViewModel, navController) {
+        sessionViewModel.logoutCompleted.collect {
+            navController.navigateToLogin()
+        }
+    }
     val startDestination = sessionState.role?.toRoute() ?: Route.Login
     NavHost(navController, startDestination = startDestination) {
         composable<Route.Login> {
@@ -79,33 +85,19 @@ fun MainNavGraph() {
         }
 
         composable<Route.Student> {
-            StudentRoot(
-                onLogout = {
-                    sessionViewModel.onLoggedOut()
-                    navController.navigateToLogin()
-                },
-            )
+            StudentRoot(onLogout = sessionViewModel::logout)
         }
 
         composable<Route.University> {
-            UniversityRoot(onLogout = {
-                sessionViewModel.onLoggedOut()
-                navController.navigateToLogin()
-            })
+            UniversityRoot(onLogout = sessionViewModel::logout)
         }
 
         composable<Route.Company> {
-            CompanyRoot(onLogout = {
-                sessionViewModel.onLoggedOut()
-                navController.navigateToLogin()
-            })
+            CompanyRoot(onLogout = sessionViewModel::logout)
         }
 
         composable<Route.Admin> {
-            AdminRoot(onLogout = {
-                sessionViewModel.onLoggedOut()
-                navController.navigateToLogin()
-            })
+            AdminRoot(onLogout = sessionViewModel::logout)
         }
     }
 }

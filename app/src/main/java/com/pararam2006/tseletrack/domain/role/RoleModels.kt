@@ -11,6 +11,9 @@ data class ContractQueueItem(
     val studentName: String,
     val avatarLetter: String,
     val signedAt: String,
+    val fileName: String? = null,
+    val documentId: String? = null,
+    val documentSizeBytes: Long? = null,
 )
 
 data class UniversityStudentItem(
@@ -22,9 +25,8 @@ data class UniversityStudentItem(
 
 enum class CandidateStatus(val title: String) {
     Education("Обучение"),
-    Employment("Работа"),
-    Retention("Удержание"),
-    Completed("Завершён"),
+    Employment("Трудоустройство"),
+    Completed("Трудоустроен"),
 }
 
 data class CandidateItem(
@@ -45,6 +47,35 @@ data class AnalyticsDashboard(
     val universityValues: List<Pair<String, Int>>,
 )
 
+enum class OfferDemandStatus {
+    Underfilled,
+    Filled,
+    Oversubscribed,
+}
+
+data class TargetOfferMetric(
+    val offerId: String,
+    val directionCode: String,
+    val directionName: String,
+    val companyName: String,
+    val quotaPlaces: Int,
+    val applicationCount: Int,
+    val updatedAt: String,
+) {
+    val delta: Int
+        get() = applicationCount - quotaPlaces
+
+    val fillPercent: Int
+        get() = if (quotaPlaces == 0) 0 else (applicationCount * 100 / quotaPlaces)
+
+    val demandStatus: OfferDemandStatus
+        get() = when {
+            applicationCount < quotaPlaces -> OfferDemandStatus.Underfilled
+            applicationCount > quotaPlaces -> OfferDemandStatus.Oversubscribed
+            else -> OfferDemandStatus.Filled
+        }
+}
+
 data class UniversityDashboard(
     val studentCount: Int,
     val queueCount: Int,
@@ -52,6 +83,7 @@ data class UniversityDashboard(
     val queue: List<ContractQueueItem>,
     val students: List<UniversityStudentItem>,
     val analytics: AnalyticsDashboard,
+    val targetOfferMetrics: List<TargetOfferMetric> = emptyList(),
     val profile: RoleProfile,
 )
 

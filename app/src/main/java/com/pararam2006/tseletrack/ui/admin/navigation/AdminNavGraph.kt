@@ -79,15 +79,10 @@ internal fun AdminNavGraph(
                     avatarLetter = profile.avatarLetter,
                     role = profile.role,
                     rows = listOf(
-                        ProfileRow("Тема оформления", "Светлая"),
-                        ProfileRow("Уведомления", "Включены"),
                         ProfileRow("Журнал действий", "Доступен"),
                     ),
                     onRowClick = viewModel::openProfileRow,
-                    onLogout = {
-                        viewModel.logout()
-                        onLogout()
-                    },
+                    onLogout = onLogout,
                 )
             }
         }

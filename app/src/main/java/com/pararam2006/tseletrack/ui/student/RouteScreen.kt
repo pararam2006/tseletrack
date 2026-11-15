@@ -34,6 +34,8 @@ import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.domain.student.RouteStage
 import com.pararam2006.tseletrack.domain.student.RouteStageStatus
 import com.pararam2006.tseletrack.domain.student.RouteStageType
+import com.pararam2006.tseletrack.domain.student.AdmissionState
+import com.pararam2006.tseletrack.domain.student.StudentDocumentStatus
 import com.pararam2006.tseletrack.ui.common.AppCard
 import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
 import com.pararam2006.tseletrack.ui.common.AppProgressBar
@@ -52,11 +54,15 @@ import com.pararam2006.tseletrack.ui.theme.tseletrackWhite
 @Composable
 internal fun RouteScreen(
     isLoading: Boolean,
+    contractStatus: StudentDocumentStatus,
+    hasSelectedOffer: Boolean,
+    admissionState: AdmissionState?,
     progressPercent: Int,
     stages: List<RouteStage>,
-    onSignContract: () -> Unit,
     onCareerGuidanceClick: () -> Unit,
     onUniversityChoiceClick: () -> Unit,
+    onDocumentsClick: () -> Unit,
+    onAcademicPerformanceClick: () -> Unit,
 ) {
     if (isLoading) {
         AppLoadingScreen(title = stringResource(R.string.route_title))
@@ -68,6 +74,11 @@ internal fun RouteScreen(
             .fillMaxSize()
             .background(tseletrackBg),
     ) {
+        val primaryAction = stages.primaryAction(
+            contractStatus = contractStatus,
+            hasSelectedOffer = hasSelectedOffer,
+            admissionState = admissionState,
+        )
         AppScreenHeader(title = stringResource(R.string.route_title))
         Column(
             modifier = Modifier
@@ -108,36 +119,115 @@ internal fun RouteScreen(
                         onClick = when {
                             stage.isCareerGuidance -> onCareerGuidanceClick
                             stage.isUniversityChoice -> onUniversityChoiceClick
+                            stage.isAcademicPerformanceAvailable -> onAcademicPerformanceClick
                             else -> null
                         },
                     )
                 }
             }
             Spacer(Modifier.height(Dimension.Spacing.large))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp)
-                    .background(tseletrackRed, MaterialTheme.shapes.large)
-                    .clickable(role = Role.Button, onClick = onSignContract),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = stringResource(R.string.route_sign_contract),
-                    color = tseletrackWhite,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
+            RoutePrimaryButton(
+                action = primaryAction,
+                onClick = when (primaryAction) {
+                    RoutePrimaryAction.CareerGuidance -> onCareerGuidanceClick
+                    RoutePrimaryAction.ChooseTargetOffer,
+                    RoutePrimaryAction.SubmitDocuments,
+                    RoutePrimaryAction.CheckApplication,
+                    RoutePrimaryAction.TrackApplication,
+                    RoutePrimaryAction.CheckEnrollmentOrder,
+                    RoutePrimaryAction.EnrollmentConfirmed,
+                    -> onUniversityChoiceClick
+                    RoutePrimaryAction.UploadContract,
+                    RoutePrimaryAction.FixContract,
+                    RoutePrimaryAction.EmploymentDocuments,
+                    RoutePrimaryAction.CurrentStageDocuments,
+                    -> onDocumentsClick
+
+                    RoutePrimaryAction.AcademicPerformance -> onAcademicPerformanceClick
+
+                    RoutePrimaryAction.ContractLocked,
+                    RoutePrimaryAction.ContractPending,
+                    RoutePrimaryAction.ContractAccepted,
+                    RoutePrimaryAction.Waiting,
+                    RoutePrimaryAction.Completed,
+                    -> ({})
+                },
+            )
         }
     }
 }
+
+@Composable
+private fun RoutePrimaryButton(
+    action: RoutePrimaryAction,
+    onClick: () -> Unit,
+) {
+    val enabled = action.isEnabled
+    val background = when {
+        action == RoutePrimaryAction.Completed -> tseletrackOk
+        enabled -> tseletrackRed
+        else -> tseletrackLine
+    }
+    val contentColor = if (enabled || action == RoutePrimaryAction.Completed) {
+        tseletrackWhite
+    } else {
+        tseletrackMut
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(Dimension.Size.button)
+            .background(background, MaterialTheme.shapes.large)
+            .clickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = action.label(),
+            color = contentColor,
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun RoutePrimaryAction.label(): String = stringResource(
+    when (this) {
+        RoutePrimaryAction.CareerGuidance -> R.string.route_action_career_guidance
+        RoutePrimaryAction.ChooseTargetOffer -> R.string.route_action_choose_target_offer
+        RoutePrimaryAction.SubmitDocuments -> R.string.route_action_submit_documents
+        RoutePrimaryAction.CheckApplication -> R.string.route_action_check_application
+        RoutePrimaryAction.TrackApplication -> R.string.route_action_track_application
+        RoutePrimaryAction.CheckEnrollmentOrder -> R.string.route_action_check_enrollment
+        RoutePrimaryAction.EnrollmentConfirmed -> R.string.route_action_enrollment_confirmed
+        RoutePrimaryAction.UploadContract -> R.string.route_action_upload_contract
+        RoutePrimaryAction.FixContract -> R.string.route_action_fix_contract
+        RoutePrimaryAction.ContractLocked -> R.string.route_action_contract_locked
+        RoutePrimaryAction.ContractPending -> R.string.route_action_contract_pending
+        RoutePrimaryAction.ContractAccepted -> R.string.route_action_contract_accepted
+        RoutePrimaryAction.AcademicPerformance -> R.string.route_action_education
+        RoutePrimaryAction.EmploymentDocuments -> R.string.route_action_employment
+        RoutePrimaryAction.CurrentStageDocuments -> R.string.route_action_current_stage
+        RoutePrimaryAction.Waiting -> R.string.route_action_waiting
+        RoutePrimaryAction.Completed -> R.string.route_action_completed
+    },
+)
 
 private val RouteStage.isCareerGuidance: Boolean
     get() = type == RouteStageType.CareerGuidance
 
 private val RouteStage.isUniversityChoice: Boolean
     get() = type == RouteStageType.TargetOfferChoice
+
+private val RouteStage.isAcademicPerformanceAvailable: Boolean
+    get() = type == RouteStageType.Education && status in setOf(
+        RouteStageStatus.Current,
+        RouteStageStatus.Completed,
+    )
 
 @Composable
 private fun RouteStageItem(

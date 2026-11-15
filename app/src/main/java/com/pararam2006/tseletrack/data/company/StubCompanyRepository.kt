@@ -12,7 +12,7 @@ class StubCompanyRepository : CompanyRepository {
         candidates = listOf(
             CandidateItem("b", "Студент Б.", "Б", "ТулГУ", "Обучение", 50, CandidateStatus.Education),
             CandidateItem("v", "Студент В.", "В", "ТГПУ", "Трудоустройство", 83, CandidateStatus.Employment),
-            CandidateItem("d", "Студент Д.", "Д", "ТулГУ", "Удержание", 100, CandidateStatus.Completed),
+            CandidateItem("d", "Студент Д.", "Д", "ТулГУ", "Трудоустроен", 100, CandidateStatus.Completed),
         ),
         analytics = defaultAnalytics(),
         profile = RoleProfile("ООО «Завод»", "З", "Работодатель"),

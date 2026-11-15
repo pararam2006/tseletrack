@@ -4,6 +4,7 @@ import com.pararam2006.tseletrack.data.network.ApiErrorKind
 import com.pararam2006.tseletrack.data.network.ApiException
 import com.pararam2006.tseletrack.data.student.StudentRepository
 import com.pararam2006.tseletrack.domain.student.AdmissionStatus
+import com.pararam2006.tseletrack.domain.student.AdmissionState
 import com.pararam2006.tseletrack.domain.student.StudentDashboard
 import com.pararam2006.tseletrack.domain.student.TargetOffer
 import com.pararam2006.tseletrack.domain.student.TargetOfferCatalog
@@ -61,6 +62,7 @@ class TargetOffersViewModelTest {
         val repository = FakeStudentRepository(
             catalog = catalog(selectedOffer, offer("another")),
             selectionToReturn = TargetOfferSelection(selectedOffer, "selected_locally"),
+            admissionStatus = admissionStatus(AdmissionState.Recommended),
         )
         val viewModel = TargetOffersViewModel(repository)
         viewModel.updateSearchQuery("строй")
@@ -72,6 +74,7 @@ class TargetOffersViewModelTest {
         assertSame(selectedOffer, state.selectedOffer)
         assertFalse(state.isCatalogExpanded)
         assertEquals("", state.searchQuery)
+        assertNull(state.admissionStatus)
         assertEquals(TargetOffersMessage.OfferSavedToRoute, state.actionMessage)
     }
 
@@ -173,6 +176,7 @@ class TargetOffersViewModelTest {
         private val catalogError: Exception? = null,
         private val refreshError: Exception? = null,
         private val chooseError: Exception? = null,
+        private val admissionStatus: AdmissionStatus? = null,
     ) : StudentRepository {
         val catalogRequests = mutableListOf<Boolean>()
         var chosenOfferId: String? = null
@@ -191,13 +195,17 @@ class TargetOffersViewModelTest {
             return selectionToReturn
         }
 
-        override suspend fun loadAdmissionStatus(): AdmissionStatus? = null
+        override suspend fun loadAdmissionStatus(): AdmissionStatus? = admissionStatus
         override suspend fun loadDashboard(): StudentDashboard = error("Not used")
-        override suspend fun signContract() = error("Not used")
+        override suspend fun loadDocuments() = error("Not used")
+        override suspend fun uploadContract(
+            document: com.pararam2006.tseletrack.domain.student.StudentDocumentUpload,
+        ) = error("Not used")
+        override suspend fun downloadDocument(
+            document: com.pararam2006.tseletrack.domain.student.StudentDocument,
+        ) = error("Not used")
         override suspend fun saveApplicantCode(applicantCode: String): AdmissionStatus = error("Not used")
         override suspend fun refreshAdmissionStatus(): AdmissionStatus = error("Not used")
-        override suspend fun updateTask(taskId: String, isCompleted: Boolean) = error("Not used")
-        override suspend fun addTask() = error("Not used")
         override suspend fun completeCareerGuidance() = error("Not used")
         override suspend fun logout() = error("Not used")
     }
@@ -225,6 +233,25 @@ class TargetOffersViewModelTest {
             requestLinkType = null,
             officialApplicationUrl = "https://trudvsem.ru/offer/$id",
             sourceUrl = "https://trudvsem.ru/offer/$id",
+        )
+
+        fun admissionStatus(state: AdmissionState) = AdmissionStatus(
+            applicantCodeMasked = "12**56",
+            state = state,
+            directionCode = null,
+            directionName = null,
+            profile = null,
+            quota = "target",
+            sponsorName = null,
+            totalScore = null,
+            consentToEnroll = null,
+            mainPriority = null,
+            highestPassingPriority = null,
+            sourceKind = null,
+            sourceUrl = null,
+            checkedAt = null,
+            isStale = false,
+            warning = null,
         )
     }
 }

@@ -20,7 +20,7 @@ import com.pararam2006.tseletrack.ui.theme.tseletrackBg
 private val studentTabs: List<AppBottomTab<StudentRoute>> = listOf(
     AppBottomTab(StudentRoute.Roadmap, R.string.tab_route, R.drawable.ic_nav_route, "student_tab_route"),
     AppBottomTab(StudentRoute.TargetOffers, R.string.tab_target_offers, R.drawable.ic_nav_university, "student_tab_target_offers"),
-    AppBottomTab(StudentRoute.Tasks, R.string.tab_tasks, R.drawable.ic_nav_tasks, "student_tab_tasks"),
+    AppBottomTab(StudentRoute.Documents, R.string.tab_documents, R.drawable.ic_nav_queue, "student_tab_documents"),
     AppBottomTab(StudentRoute.Profile, R.string.tab_profile, R.drawable.ic_nav_student_profile, "student_tab_profile"),
 )
 

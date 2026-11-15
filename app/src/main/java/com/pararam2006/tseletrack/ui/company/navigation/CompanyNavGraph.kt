@@ -64,15 +64,10 @@ internal fun CompanyNavGraph(
                     avatarLetter = profile.avatarLetter,
                     role = profile.role,
                     rows = listOf(
-                        ProfileRow("Тема оформления", "Светлая"),
-                        ProfileRow("Уведомления", "Включены"),
                         ProfileRow("Документы", "5 файлов"),
                     ),
                     onRowClick = viewModel::openProfileRow,
-                    onLogout = {
-                        viewModel.logout()
-                        onLogout()
-                    },
+                    onLogout = onLogout,
                 )
             }
         }

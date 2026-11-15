@@ -8,19 +8,20 @@ import com.pararam2006.tseletrack.data.network.dto.ContractDto
 import com.pararam2006.tseletrack.data.network.dto.LoginRequestDto
 import com.pararam2006.tseletrack.data.network.dto.AdmissionStatusDto
 import com.pararam2006.tseletrack.data.network.dto.AdmissionTrackingRequestDto
+import com.pararam2006.tseletrack.data.network.dto.AcademicPerformanceDto
+import com.pararam2006.tseletrack.data.network.dto.AcademicPerformanceTrackingRequestDto
 import com.pararam2006.tseletrack.data.network.dto.RegisterRequestDto
 import com.pararam2006.tseletrack.data.network.dto.StudentDashboardDto
-import com.pararam2006.tseletrack.data.network.dto.StudentTaskDto
 import com.pararam2006.tseletrack.data.network.dto.RouteStageDto
+import com.pararam2006.tseletrack.data.network.dto.RouteDocumentDto
 import com.pararam2006.tseletrack.data.network.dto.StageUpdateRequestDto
-import com.pararam2006.tseletrack.data.network.dto.TaskCreateRequestDto
-import com.pararam2006.tseletrack.data.network.dto.TaskUpdateRequestDto
 import com.pararam2006.tseletrack.data.network.dto.TokenResponseDto
 import com.pararam2006.tseletrack.data.network.dto.TargetOfferListDto
 import com.pararam2006.tseletrack.data.network.dto.TargetOfferSelectionDto
 import com.pararam2006.tseletrack.data.network.dto.UniversityDashboardDto
 import com.pararam2006.tseletrack.data.network.dto.UserDto
 import com.pararam2006.tseletrack.data.storage.TokenStore
+import com.pararam2006.tseletrack.domain.student.DownloadedDocument
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.timeout
@@ -30,6 +31,11 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.client.statement.bodyAsBytes
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 
 class TseletrackApi(
     private val client: HttpClient,
@@ -66,8 +72,63 @@ class TseletrackApi(
         client.get(url("api/student/dashboard")).body()
     }
 
-    suspend fun signStudentContract(): ContractDto = call {
-        client.post(url("api/student/contract/sign")).body()
+    suspend fun studentDocuments(): List<RouteDocumentDto> = call {
+        client.get(url("api/student/documents")).body()
+    }
+
+    suspend fun uploadStudentContract(
+        fileName: String,
+        contentType: String,
+        bytes: ByteArray,
+    ): RouteDocumentDto = call {
+        client.post(url("api/student/documents/contract")) {
+            headers.remove(HttpHeaders.ContentType)
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        append(
+                            key = "file",
+                            value = bytes,
+                            headers = Headers.build {
+                                append(HttpHeaders.ContentType, contentType)
+                                append(
+                                    HttpHeaders.ContentDisposition,
+                                    "filename=\"${fileName.safeHeaderFileName()}\"",
+                                )
+                            },
+                        )
+                    },
+                ),
+            )
+            timeout {
+                requestTimeoutMillis = DOCUMENT_TIMEOUT_MILLIS
+                socketTimeoutMillis = DOCUMENT_TIMEOUT_MILLIS
+            }
+        }.body()
+    }
+
+    suspend fun downloadDocument(documentId: String, fileName: String): DownloadedDocument =
+        downloadDocumentAt(
+            downloadUrl = "/api/documents/$documentId/content",
+            fileName = fileName,
+        )
+
+    suspend fun downloadDocumentAt(
+        downloadUrl: String,
+        fileName: String,
+    ): DownloadedDocument = call {
+        require(downloadUrl.startsWith("/api/")) { "Недопустимый адрес документа" }
+        val response = client.get(url(downloadUrl)) {
+            timeout {
+                requestTimeoutMillis = DOCUMENT_TIMEOUT_MILLIS
+                socketTimeoutMillis = DOCUMENT_TIMEOUT_MILLIS
+            }
+        }
+        DownloadedDocument(
+            fileName = fileName,
+            contentType = response.headers[HttpHeaders.ContentType] ?: "application/pdf",
+            bytes = response.bodyAsBytes(),
+        )
     }
 
     suspend fun targetOffers(forceRefresh: Boolean): TargetOfferListDto = call {
@@ -103,15 +164,34 @@ class TseletrackApi(
         }.body()
     }
 
-    suspend fun updateStudentTask(taskId: String, isCompleted: Boolean): StudentTaskDto = call {
-        client.patch(url("api/student/tasks/$taskId")) {
-            setBody(TaskUpdateRequestDto(isCompleted))
+    suspend fun academicPerformance(): AcademicPerformanceDto = call {
+        client.get(url("api/student/academic-performance")).body()
+    }
+
+    suspend fun connectAcademicPerformance(
+        recordBookNumber: String,
+        groupTitle: String,
+    ): AcademicPerformanceDto = call {
+        client.put(url("api/student/academic-performance/tracking")) {
+            setBody(
+                AcademicPerformanceTrackingRequestDto(
+                    recordBookNumber = recordBookNumber,
+                    groupTitle = groupTitle,
+                ),
+            )
+            timeout {
+                requestTimeoutMillis = ACADEMIC_REFRESH_TIMEOUT_MILLIS
+                socketTimeoutMillis = ACADEMIC_REFRESH_TIMEOUT_MILLIS
+            }
         }.body()
     }
 
-    suspend fun createStudentTask(title: String): StudentTaskDto = call {
-        client.post(url("api/student/tasks")) {
-            setBody(TaskCreateRequestDto(title))
+    suspend fun refreshAcademicPerformance(): AcademicPerformanceDto = call {
+        client.post(url("api/student/academic-performance/refresh")) {
+            timeout {
+                requestTimeoutMillis = ACADEMIC_REFRESH_TIMEOUT_MILLIS
+                socketTimeoutMillis = ACADEMIC_REFRESH_TIMEOUT_MILLIS
+            }
         }.body()
     }
 
@@ -171,5 +251,10 @@ class TseletrackApi(
 
     private companion object {
         const val ADMISSION_REFRESH_TIMEOUT_MILLIS = 120_000L
+        const val ACADEMIC_REFRESH_TIMEOUT_MILLIS = 20_000L
+        const val DOCUMENT_TIMEOUT_MILLIS = 60_000L
     }
 }
+
+private fun String.safeHeaderFileName(): String =
+    replace("\r", "").replace("\n", "").replace("\"", "'").take(200)

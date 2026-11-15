@@ -153,14 +153,12 @@ private fun CandidateCard(
 
 private fun CandidateItem.nextStatus(): CandidateStatus = when (status) {
     CandidateStatus.Education -> CandidateStatus.Employment
-    CandidateStatus.Employment -> CandidateStatus.Retention
-    CandidateStatus.Retention -> CandidateStatus.Completed
+    CandidateStatus.Employment -> CandidateStatus.Completed
     CandidateStatus.Completed -> CandidateStatus.Completed
 }
 
 private fun CandidateItem.actionTitle(): String = when (status) {
-    CandidateStatus.Education -> "Трудоустроен"
-    CandidateStatus.Employment -> "Удержан"
-    CandidateStatus.Retention -> "Завершить маршрут"
+    CandidateStatus.Education -> "Перейти к трудоустройству"
+    CandidateStatus.Employment -> "Подтвердить трудоустройство"
     CandidateStatus.Completed -> "Маршрут завершён"
 }

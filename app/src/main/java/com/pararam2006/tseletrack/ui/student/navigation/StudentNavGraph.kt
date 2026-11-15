@@ -1,9 +1,12 @@
 package com.pararam2006.tseletrack.ui.student.navigation
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -13,13 +16,18 @@ import com.pararam2006.tseletrack.ui.student.ProfileScreen
 import com.pararam2006.tseletrack.ui.student.ProfileViewModel
 import com.pararam2006.tseletrack.ui.student.RouteScreen
 import com.pararam2006.tseletrack.ui.student.RouteViewModel
-import com.pararam2006.tseletrack.ui.student.TasksScreen
-import com.pararam2006.tseletrack.ui.student.TasksViewModel
+import com.pararam2006.tseletrack.ui.student.DocumentsScreen
+import com.pararam2006.tseletrack.ui.student.DocumentsViewModel
+import com.pararam2006.tseletrack.ui.student.AcademicPerformanceScreen
+import com.pararam2006.tseletrack.ui.student.AcademicPerformanceViewModel
 import com.pararam2006.tseletrack.ui.student.TargetOffersScreen
 import com.pararam2006.tseletrack.ui.student.TargetOffersViewModel
 import com.pararam2006.tseletrack.ui.career.navigation.CareerGuidanceNavGraph
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.ui.common.AppErrorScreen
+import com.pararam2006.tseletrack.domain.student.StudentDocumentType
+import com.pararam2006.tseletrack.ui.student.readDocumentUpload
+import com.pararam2006.tseletrack.ui.common.openDownloadedDocument
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -42,14 +50,22 @@ internal fun StudentNavGraph(
             } else {
                 RouteScreen(
                     isLoading = state.isLoading,
+                    contractStatus = state.contractStatus,
+                    hasSelectedOffer = state.hasSelectedOffer,
+                    admissionState = state.admissionState,
                     progressPercent = state.progressPercent,
                     stages = state.stages,
-                    onSignContract = routeViewModel::signContract,
                     onCareerGuidanceClick = {
                         navController.navigate(StudentRoute.CareerGuidance)
                     },
                     onUniversityChoiceClick = {
                         navController.navigateToStudentRoute(StudentRoute.TargetOffers)
+                    },
+                    onDocumentsClick = {
+                        navController.navigateToStudentRoute(StudentRoute.Documents)
+                    },
+                    onAcademicPerformanceClick = {
+                        navController.navigate(StudentRoute.AcademicPerformance)
                     },
                 )
             }
@@ -70,8 +86,10 @@ internal fun StudentNavGraph(
         composable<StudentRoute.TargetOffers> {
             val viewModel = koinViewModel<TargetOffersViewModel>()
             val state by viewModel.uiState.collectAsStateWithLifecycle()
-            LaunchedEffect(state.admissionStatus?.checkedAt) {
-                if (state.admissionStatus?.checkedAt != null) routeViewModel.refresh()
+            LaunchedEffect(state.selectedOffer?.id, state.admissionStatus?.checkedAt) {
+                if (state.selectedOffer != null || state.admissionStatus?.checkedAt != null) {
+                    routeViewModel.refresh()
+                }
             }
             val error = state.errorMessage
             if (error != null) {
@@ -90,25 +108,67 @@ internal fun StudentNavGraph(
             }
         }
 
-        composable<StudentRoute.Tasks> {
-            val viewModel = koinViewModel<TasksViewModel>()
+        composable<StudentRoute.Documents> {
+            val viewModel = koinViewModel<DocumentsViewModel>()
             val state by viewModel.uiState.collectAsStateWithLifecycle()
+            val context = LocalContext.current
+            val contractStatus = state.documents
+                .firstOrNull { it.type == StudentDocumentType.TargetContract }
+                ?.status
+            LaunchedEffect(contractStatus) {
+                if (contractStatus != null) routeViewModel.refresh()
+            }
+            LaunchedEffect(viewModel) {
+                viewModel.refresh()
+                viewModel.documentsToOpen.collect { document ->
+                    if (!context.openDownloadedDocument(document)) {
+                        viewModel.documentOpenFailed()
+                    }
+                }
+            }
+            val documentPicker = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.OpenDocument(),
+            ) { uri ->
+                if (uri != null) {
+                    viewModel.uploadContract(context.contentResolver.readDocumentUpload(uri))
+                }
+            }
             val error = state.errorMessage
             if (error != null) {
-                AppErrorScreen(stringResource(R.string.tasks_title), error, viewModel::retry)
+                AppErrorScreen(stringResource(R.string.documents_title), error, viewModel::retry)
             } else {
-                TasksScreen(
-                    isLoading = state.isLoading,
-                    tasks = state.tasks,
-                    onTaskClick = viewModel::toggleTask,
-                    onAddTask = viewModel::addTask,
+                DocumentsScreen(
+                    state = state,
+                    onUploadContract = { documentPicker.launch(arrayOf("application/pdf")) },
+                    onOpenDocument = viewModel::openDocument,
                 )
             }
+        }
+
+        composable<StudentRoute.AcademicPerformance> {
+            val viewModel = koinViewModel<AcademicPerformanceViewModel>()
+            val state by viewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(viewModel) {
+                viewModel.reloadForActiveUser()
+            }
+            AcademicPerformanceScreen(
+                state = state,
+                onRecordBookNumberChange = viewModel::updateRecordBookNumber,
+                onGroupTitleChange = viewModel::updateGroupTitle,
+                onConnect = viewModel::connect,
+                onRefresh = viewModel::refresh,
+                onEditTracking = viewModel::editTracking,
+                onCancelEditing = viewModel::cancelEditing,
+                onBack = navController::popBackStack,
+            )
         }
 
         composable<StudentRoute.Profile> {
             val viewModel = koinViewModel<ProfileViewModel>()
             val state by viewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(viewModel) {
+                viewModel.refresh()
+            }
             val error = state.errorMessage
             if (error != null) {
                 AppErrorScreen(stringResource(R.string.profile_title), error, viewModel::retry)
@@ -116,11 +176,14 @@ internal fun StudentNavGraph(
                 ProfileScreen(
                     isLoading = state.isLoading,
                     profile = state.profile,
-                    onSettingClick = viewModel::openSetting,
-                    onLogout = {
-                        viewModel.logout()
-                        onLogout()
+                    isAcademicPerformanceAvailable = state.isAcademicPerformanceAvailable,
+                    onDocumentsClick = {
+                        navController.navigateToStudentRoute(StudentRoute.Documents)
                     },
+                    onAcademicPerformanceClick = {
+                        navController.navigate(StudentRoute.AcademicPerformance)
+                    },
+                    onLogout = onLogout,
                 )
             }
         }

@@ -13,7 +13,9 @@ import com.pararam2006.tseletrack.ui.common.ProfileRow
 internal fun ProfileScreen(
     isLoading: Boolean,
     profile: StudentProfile,
-    onSettingClick: (ProfileSetting) -> Unit,
+    isAcademicPerformanceAvailable: Boolean,
+    onDocumentsClick: () -> Unit,
+    onAcademicPerformanceClick: () -> Unit,
     onLogout: () -> Unit,
 ) {
     if (isLoading) {
@@ -25,31 +27,31 @@ internal fun ProfileScreen(
         displayName = profile.displayName,
         avatarLetter = profile.avatarLetter,
         role = profile.role,
-        rows = listOf(
-            ProfileRow(
-                title = stringResource(R.string.profile_theme),
-                value = stringResource(R.string.profile_theme_light),
-            ),
-            ProfileRow(
-                title = stringResource(R.string.profile_notifications),
-                value = stringResource(R.string.profile_notifications_on),
-            ),
-            ProfileRow(
-                title = stringResource(R.string.profile_documents),
-                value = pluralStringResource(
-                    R.plurals.profile_document_count,
-                    profile.documentCount,
-                    profile.documentCount,
+        rows = buildList {
+            add(
+                ProfileRow(
+                    title = stringResource(R.string.profile_documents),
+                    value = pluralStringResource(
+                        R.plurals.profile_document_count,
+                        profile.documentCount,
+                        profile.documentCount,
+                    ),
                 ),
-            ),
-        ),
-        onRowClick = { index ->
-            val setting = when (index) {
-                0 -> ProfileSetting.Theme
-                1 -> ProfileSetting.Notifications
-                else -> ProfileSetting.Documents
+            )
+            if (isAcademicPerformanceAvailable) {
+                add(
+                    ProfileRow(
+                        title = stringResource(R.string.academic_performance_title),
+                        value = stringResource(R.string.profile_academic_performance_value),
+                    ),
+                )
             }
-            onSettingClick(setting)
+        },
+        onRowClick = { index ->
+            when (index) {
+                0 -> onDocumentsClick()
+                1 -> onAcademicPerformanceClick()
+            }
         },
         onLogout = onLogout,
     )

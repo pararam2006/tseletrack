@@ -58,4 +58,26 @@ class LoginViewModel(
             }
         }
     }
+
+    fun startStudentDemo() {
+        startDemo(authRepository::startStudentDemo)
+    }
+
+    fun startUniversityDemo() {
+        startDemo(authRepository::startUniversityDemo)
+    }
+
+    private fun startDemo(resolveRole: suspend () -> Role) {
+        if (_uiState.value.isSubmitting) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
+            try {
+                _authenticatedRoles.send(resolveRole())
+            } catch (error: Exception) {
+                _uiState.update { it.copy(errorMessage = error.userMessage()) }
+            } finally {
+                _uiState.update { it.copy(isSubmitting = false) }
+            }
+        }
+    }
 }

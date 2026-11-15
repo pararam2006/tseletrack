@@ -81,14 +81,6 @@ data class StudentDashboardDto(
 )
 
 @Serializable
-data class TaskUpdateRequestDto(
-    @SerialName("is_completed") val isCompleted: Boolean,
-)
-
-@Serializable
-data class TaskCreateRequestDto(val title: String)
-
-@Serializable
 data class StageUpdateRequestDto(
     val status: String,
 )
@@ -167,11 +159,57 @@ data class AdmissionStatusDto(
 )
 
 @Serializable
+data class AcademicPerformanceTrackingRequestDto(
+    @SerialName("record_book_number") val recordBookNumber: String,
+    @SerialName("group_title") val groupTitle: String,
+)
+
+@Serializable
+data class AcademicResultDto(
+    val semester: Int,
+    val discipline: String,
+    val points: String? = null,
+    val grade: String? = null,
+    val teacher: String? = null,
+    @SerialName("retake_info") val retakeInfo: String? = null,
+    @SerialName("can_be_recredited") val canBeRecredited: Boolean,
+)
+
+@Serializable
+data class AcademicPerformanceDto(
+    @SerialName("record_book_number_masked") val recordBookNumberMasked: String,
+    @SerialName("group_title") val groupTitle: String,
+    val results: List<AcademicResultDto>,
+    @SerialName("fetched_at") val fetchedAt: String? = null,
+    @SerialName("is_stale") val isStale: Boolean,
+    val warning: String? = null,
+    @SerialName("source_url") val sourceUrl: String,
+)
+
+@Serializable
+data class RouteDocumentDto(
+    val id: Int,
+    @SerialName("route_id") val routeId: Int,
+    @SerialName("document_type") val documentType: String,
+    val title: String,
+    val status: String,
+    @SerialName("file_name") val fileName: String,
+    @SerialName("content_type") val contentType: String,
+    @SerialName("size_bytes") val sizeBytes: Long,
+    @SerialName("uploaded_at") val uploadedAt: String,
+    @SerialName("updated_at") val updatedAt: String,
+    @SerialName("download_url") val downloadUrl: String,
+)
+
+@Serializable
 data class ContractQueueItemDto(
     val id: Int,
     @SerialName("student_name") val studentName: String,
     @SerialName("avatar_letter") val avatarLetter: String,
     @SerialName("signed_at") val signedAt: String,
+    @SerialName("document_id") val documentId: Int? = null,
+    @SerialName("file_name") val fileName: String? = null,
+    @SerialName("document_size_bytes") val documentSizeBytes: Long? = null,
 )
 
 @Serializable

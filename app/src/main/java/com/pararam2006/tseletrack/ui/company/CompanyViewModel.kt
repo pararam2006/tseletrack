@@ -15,8 +15,8 @@ import kotlinx.coroutines.launch
 enum class CandidateFilter(val title: String) {
     All("Все"),
     Education("Обучение"),
-    Employment("Работа"),
-    Retention("Удержание"),
+    Employment("Трудоустройство"),
+    Completed("Трудоустроены"),
 }
 
 data class CompanyUiState(
@@ -30,8 +30,7 @@ data class CompanyUiState(
                 CandidateFilter.All -> true
                 CandidateFilter.Education -> candidate.status == CandidateStatus.Education
                 CandidateFilter.Employment -> candidate.status == CandidateStatus.Employment
-                CandidateFilter.Retention -> candidate.status == CandidateStatus.Retention ||
-                    candidate.status == CandidateStatus.Completed
+                CandidateFilter.Completed -> candidate.status == CandidateStatus.Completed
             }
         }
 }
@@ -73,10 +72,6 @@ class CompanyViewModel(
     }
 
     fun openProfileRow(index: Int) = Unit
-
-    fun logout() {
-        viewModelScope.launch { repository.logout() }
-    }
 
     fun retry() = loadDashboard()
 

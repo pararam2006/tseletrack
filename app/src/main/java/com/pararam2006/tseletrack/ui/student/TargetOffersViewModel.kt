@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 sealed interface TargetOffersMessage {
     data object CatalogUpdated : TargetOffersMessage
     data object OfferSavedToRoute : TargetOffersMessage
+    data object SelectOfferFirst : TargetOffersMessage
     data object InvalidApplicantCode : TargetOffersMessage
     data object ApplicantCodeSaved : TargetOffersMessage
     data object AdmissionStatusUpdated : TargetOffersMessage
@@ -54,7 +55,7 @@ data class TargetOffersUiState(
         }
 
     val canSaveApplicantCode: Boolean
-        get() = applicantCode.length in 6..20 && !isSavingCode
+        get() = selectedOffer != null && applicantCode.length in 6..20 && !isSavingCode
 }
 
 class TargetOffersViewModel(
@@ -124,6 +125,8 @@ class TargetOffersViewModel(
                         selectedOffer = selection.offer,
                         isCatalogExpanded = false,
                         searchQuery = "",
+                        applicantCode = "",
+                        admissionStatus = null,
                         actionMessage = TargetOffersMessage.OfferSavedToRoute,
                     )
                 }
@@ -139,7 +142,14 @@ class TargetOffersViewModel(
     }
 
     fun saveApplicantCode() {
-        val code = _uiState.value.applicantCode
+        val state = _uiState.value
+        if (state.selectedOffer == null) {
+            _uiState.update {
+                it.copy(actionMessage = TargetOffersMessage.SelectOfferFirst)
+            }
+            return
+        }
+        val code = state.applicantCode
         if (code.length !in MIN_APPLICANT_CODE_LENGTH..MAX_APPLICANT_CODE_LENGTH) {
             _uiState.update {
                 it.copy(actionMessage = TargetOffersMessage.InvalidApplicantCode)

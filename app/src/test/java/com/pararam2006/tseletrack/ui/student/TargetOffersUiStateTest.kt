@@ -38,10 +38,17 @@ class TargetOffersUiStateTest {
     @Test
     fun `applicant code validity respects supported length and saving state`() {
         assertFalse(TargetOffersUiState(applicantCode = "12345").canSaveApplicantCode)
-        assertTrue(TargetOffersUiState(applicantCode = "123456").canSaveApplicantCode)
+        assertFalse(TargetOffersUiState(applicantCode = "123456").canSaveApplicantCode)
+        assertTrue(
+            TargetOffersUiState(
+                applicantCode = "123456",
+                selectedOffer = offer("selected", "Строительство"),
+            ).canSaveApplicantCode,
+        )
         assertFalse(
             TargetOffersUiState(
                 applicantCode = "123456",
+                selectedOffer = offer("selected", "Строительство"),
                 isSavingCode = true,
             ).canSaveApplicantCode,
         )

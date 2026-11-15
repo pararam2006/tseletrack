@@ -19,9 +19,9 @@ import com.pararam2006.tseletrack.ui.university.navigation.UniversityRoute
 import com.pararam2006.tseletrack.ui.university.navigation.toUniversityRoute
 
 private val universityTabs: List<AppBottomTab<UniversityRoute>> = listOf(
+    AppBottomTab(UniversityRoute.Analytics, R.string.tab_analytics, R.drawable.ic_nav_analytics, "university_tab_analytics"),
     AppBottomTab(UniversityRoute.Queue, R.string.tab_queue, R.drawable.ic_nav_queue, "university_tab_queue"),
     AppBottomTab(UniversityRoute.Students, R.string.tab_students, R.drawable.ic_nav_students, "university_tab_students"),
-    AppBottomTab(UniversityRoute.Analytics, R.string.tab_analytics, R.drawable.ic_nav_analytics, "university_tab_analytics"),
     AppBottomTab(UniversityRoute.Profile, R.string.tab_profile, R.drawable.ic_nav_profile, "university_tab_profile"),
 )
 
@@ -32,7 +32,7 @@ fun UniversityRoot(
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val selectedRoute = backStackEntry?.destination?.toUniversityRoute() ?: UniversityRoute.Queue
+    val selectedRoute = backStackEntry?.destination?.toUniversityRoute() ?: UniversityRoute.Analytics
 
     Scaffold(
         modifier = modifier.fillMaxSize(),

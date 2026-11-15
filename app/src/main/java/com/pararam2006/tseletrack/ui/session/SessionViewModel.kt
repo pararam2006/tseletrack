@@ -8,11 +8,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 data class SessionUiState(
     val isChecking: Boolean = true,
     val role: Role? = null,
+    val isLoggingOut: Boolean = false,
 )
 
 class SessionViewModel(
@@ -20,6 +23,8 @@ class SessionViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SessionUiState())
     val uiState: StateFlow<SessionUiState> = _uiState.asStateFlow()
+    private val _logoutCompleted = Channel<Unit>(Channel.BUFFERED)
+    val logoutCompleted = _logoutCompleted.receiveAsFlow()
 
     init {
         viewModelScope.launch {
@@ -32,7 +37,13 @@ class SessionViewModel(
         _uiState.update { it.copy(role = role) }
     }
 
-    fun onLoggedOut() {
-        _uiState.value = SessionUiState(isChecking = false)
+    fun logout() {
+        if (_uiState.value.isLoggingOut) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoggingOut = true) }
+            runCatching { authRepository.logout() }
+            _uiState.value = SessionUiState(isChecking = false)
+            _logoutCompleted.send(Unit)
+        }
     }
 }

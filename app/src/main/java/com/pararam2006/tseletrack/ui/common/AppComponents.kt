@@ -29,6 +29,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.ui.theme.AppShapes
 import com.pararam2006.tseletrack.ui.theme.AppTextStyles
 import com.pararam2006.tseletrack.ui.theme.Dimension
@@ -90,6 +93,39 @@ internal fun AppScreenHeader(
             ),
         contentAlignment = Alignment.BottomStart,
     ) {
+        Text(
+            text = title,
+            color = tseletrackInk,
+            style = MaterialTheme.typography.headlineSmall,
+        )
+    }
+}
+
+@Composable
+internal fun AppBackScreenHeader(
+    title: String,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(tseletrackWhite)
+            .statusBarsPadding()
+            .height(Dimension.Size.header)
+            .padding(horizontal = Dimension.Padding.screen),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(R.string.common_back),
+            modifier = Modifier
+                .size(Dimension.Size.button)
+                .clickable(role = Role.Button, onClick = onBack)
+                .padding(Dimension.Spacing.mediumLarge),
+            tint = tseletrackInk,
+        )
+        Spacer(Modifier.width(Dimension.Spacing.small))
         Text(
             text = title,
             color = tseletrackInk,

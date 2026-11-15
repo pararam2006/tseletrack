@@ -7,6 +7,8 @@ import com.pararam2006.tseletrack.domain.student.RouteStageStatus
 import com.pararam2006.tseletrack.domain.student.AdmissionSourceKind
 import com.pararam2006.tseletrack.domain.student.AdmissionState
 import com.pararam2006.tseletrack.domain.student.RouteStageType
+import com.pararam2006.tseletrack.domain.student.StudentDocumentStatus
+import com.pararam2006.tseletrack.domain.student.StudentDocumentType
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -68,7 +70,6 @@ class ApiMappersTest {
             dashboard.routeStages.map { it.status },
         )
         assertEquals("4", dashboard.universities.single().id)
-        assertEquals(true, dashboard.tasks.single().isCompleted)
     }
 
     @Test
@@ -109,7 +110,6 @@ class ApiMappersTest {
     fun `candidate statuses have stable api values`() {
         assertEquals("education", CandidateStatus.Education.toApiValue())
         assertEquals("employment", CandidateStatus.Employment.toApiValue())
-        assertEquals("retention", CandidateStatus.Retention.toApiValue())
         assertEquals("completed", CandidateStatus.Completed.toApiValue())
     }
 
@@ -204,6 +204,35 @@ class ApiMappersTest {
     }
 
     @Test
+    fun `contract document response maps server metadata`() {
+        val dto = json.decodeFromString<RouteDocumentDto>(
+            """
+            {
+              "id": 42,
+              "route_id": 3,
+              "document_type": "target_contract",
+              "title": "Договор о целевом обучении",
+              "status": "under_review",
+              "file_name": "contract.pdf",
+              "content_type": "application/pdf",
+              "size_bytes": 1024,
+              "uploaded_at": "2026-11-15T12:00:00Z",
+              "updated_at": "2026-11-15T12:00:00Z",
+              "download_url": "/api/documents/42/content"
+            }
+            """.trimIndent(),
+        )
+
+        val document = dto.toDomain()
+
+        assertEquals("42", document.id)
+        assertEquals(StudentDocumentType.TargetContract, document.type)
+        assertEquals(StudentDocumentStatus.UnderReview, document.status)
+        assertEquals("contract.pdf", document.fileName)
+        assertEquals("/api/documents/42/content", document.downloadUrl)
+    }
+
+    @Test
     fun `official admission response maps normalized enums`() {
         val dto = json.decodeFromString<AdmissionStatusDto>(
             """
@@ -235,6 +264,38 @@ class ApiMappersTest {
         assertEquals(AdmissionSourceKind.EnrollmentOrderList, status.sourceKind)
         assertEquals(291, status.totalScore)
         assertEquals("17***14", status.applicantCodeMasked)
+    }
+
+    @Test
+    fun `academic performance response maps external fields to domain`() {
+        val dto = json.decodeFromString<AcademicPerformanceDto>(
+            """
+            {
+              "record_book_number_masked": "22•••47",
+              "group_title": "ИВТ-221",
+              "results": [{
+                "semester": 2,
+                "discipline": "Физика",
+                "points": "78",
+                "grade": "Хорошо",
+                "teacher": "Иванов И. И.",
+                "retake_info": "",
+                "can_be_recredited": true
+              }],
+              "fetched_at": "2026-11-15T12:00:00Z",
+              "is_stale": false,
+              "source_url": "https://tulsu.ru/progress/"
+            }
+            """.trimIndent(),
+        )
+
+        val performance = dto.toDomain()
+
+        assertEquals("ИВТ-221", performance.groupTitle)
+        assertEquals(2, performance.results.single().semester)
+        assertEquals("Хорошо", performance.results.single().grade)
+        assertEquals(null, performance.results.single().retakeInfo)
+        assertEquals(true, performance.results.single().canBeRecredited)
     }
 
     private fun user(role: String) = UserDto(

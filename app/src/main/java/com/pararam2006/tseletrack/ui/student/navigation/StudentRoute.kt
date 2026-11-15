@@ -17,7 +17,10 @@ sealed interface StudentRoute {
     data object CareerGuidance : StudentRoute
 
     @Serializable
-    data object Tasks : StudentRoute
+    data object Documents : StudentRoute
+
+    @Serializable
+    data object AcademicPerformance : StudentRoute
 
     @Serializable
     data object Profile : StudentRoute
@@ -27,7 +30,8 @@ internal fun NavDestination.toStudentRoute(): StudentRoute? = when {
     hasRoute<StudentRoute.Roadmap>() -> StudentRoute.Roadmap
     hasRoute<StudentRoute.TargetOffers>() -> StudentRoute.TargetOffers
     hasRoute<StudentRoute.CareerGuidance>() -> StudentRoute.CareerGuidance
-    hasRoute<StudentRoute.Tasks>() -> StudentRoute.Tasks
+    hasRoute<StudentRoute.Documents>() -> StudentRoute.Documents
+    hasRoute<StudentRoute.AcademicPerformance>() -> StudentRoute.AcademicPerformance
     hasRoute<StudentRoute.Profile>() -> StudentRoute.Profile
     else -> null
 }

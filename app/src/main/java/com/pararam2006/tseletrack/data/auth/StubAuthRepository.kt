@@ -20,4 +20,6 @@ class StubAuthRepository : AuthRepository {
         email: String,
         password: String,
     ): Role = Role.Student
+
+    override suspend fun logout() = Unit
 }

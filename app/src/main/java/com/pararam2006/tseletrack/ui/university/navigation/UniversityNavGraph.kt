@@ -2,7 +2,9 @@ package com.pararam2006.tseletrack.ui.university.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -10,11 +12,12 @@ import androidx.navigation.compose.composable
 import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
 import com.pararam2006.tseletrack.ui.common.AppErrorScreen
 import com.pararam2006.tseletrack.ui.common.AppProfileScreen
-import com.pararam2006.tseletrack.ui.common.EmploymentAnalyticsScreen
 import com.pararam2006.tseletrack.ui.common.ProfileRow
 import com.pararam2006.tseletrack.ui.university.UniversityQueueScreen
 import com.pararam2006.tseletrack.ui.university.UniversityStudentsScreen
+import com.pararam2006.tseletrack.ui.university.UniversityAdmissionAnalyticsScreen
 import com.pararam2006.tseletrack.ui.university.UniversityViewModel
+import com.pararam2006.tseletrack.ui.common.openDownloadedDocument
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -25,10 +28,18 @@ internal fun UniversityNavGraph(
 ) {
     val viewModel = koinViewModel<UniversityViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    LaunchedEffect(viewModel) {
+        viewModel.documentsToOpen.collect { document ->
+            if (!context.openDownloadedDocument(document)) {
+                viewModel.documentOpenFailed()
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
-        startDestination = UniversityRoute.Queue,
+        startDestination = UniversityRoute.Analytics,
         modifier = modifier,
     ) {
         composable<UniversityRoute.Queue> {
@@ -42,6 +53,7 @@ internal fun UniversityNavGraph(
                     dashboard = dashboard,
                     onConfirm = viewModel::confirmContract,
                     onDecline = viewModel::declineContract,
+                    onOpenDocument = viewModel::openContractDocument,
                 )
             }
         }
@@ -61,11 +73,19 @@ internal fun UniversityNavGraph(
             }
         }
         composable<UniversityRoute.Analytics> {
-            val analytics = state.dashboard?.analytics
-            if (analytics == null && state.errorMessage != null) {
+            val dashboard = state.dashboard
+            if (dashboard == null && state.errorMessage != null) {
                 AppErrorScreen("Аналитика", state.errorMessage.orEmpty(), viewModel::retry)
-            } else if (analytics == null) AppLoadingScreen("Аналитика")
-            else EmploymentAnalyticsScreen(analytics)
+            } else if (dashboard == null) {
+                AppLoadingScreen("Аналитика")
+            } else {
+                UniversityAdmissionAnalyticsScreen(
+                    metrics = dashboard.targetOfferMetrics,
+                    visibleMetrics = state.visibleTargetOfferMetrics,
+                    selectedFilter = state.selectedOfferDemandFilter,
+                    onFilterSelected = viewModel::selectOfferDemandFilter,
+                )
+            }
         }
         composable<UniversityRoute.Profile> {
             val profile = state.dashboard?.profile
@@ -79,15 +99,10 @@ internal fun UniversityNavGraph(
                     avatarLetter = profile.avatarLetter,
                     role = profile.role,
                     rows = listOf(
-                        ProfileRow("Тема оформления", "Светлая"),
-                        ProfileRow("Уведомления", "Включены"),
                         ProfileRow("Документы", "3 файла"),
                     ),
                     onRowClick = viewModel::openProfileRow,
-                    onLogout = {
-                        viewModel.logout()
-                        onLogout()
-                    },
+                    onLogout = onLogout,
                 )
             }
         }

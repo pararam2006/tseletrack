@@ -170,17 +170,20 @@ internal fun TargetOffersScreen(
                     )
                 }
             }
-            item {
-                AdmissionTrackingCard(
-                    applicantCode = state.applicantCode,
-                    status = state.admissionStatus,
-                    canSave = state.canSaveApplicantCode,
-                    isSaving = state.isSavingCode,
-                    isRefreshing = state.isRefreshingStatus,
-                    onApplicantCodeChange = onApplicantCodeChange,
-                    onSaveApplicantCode = onSaveApplicantCode,
-                    onRefreshAdmissionStatus = onRefreshAdmissionStatus,
-                )
+            if (state.selectedOffer != null) {
+                item {
+                    AdmissionTrackingCard(
+                        applicantCode = state.applicantCode,
+                        status = state.admissionStatus,
+                        canSave = state.canSaveApplicantCode,
+                        isSaving = state.isSavingCode,
+                        isRefreshing = state.isRefreshingStatus,
+                        onApplicantCodeChange = onApplicantCodeChange,
+                        onSaveApplicantCode = onSaveApplicantCode,
+                        onRefreshAdmissionStatus = onRefreshAdmissionStatus,
+                        onOpenSource = openExternalUrl,
+                    )
+                }
             }
             if (state.isCatalogExpanded) {
                 item {
@@ -295,7 +298,7 @@ private fun catalogSearchItemIndex(
     if (state.actionMessage != null) index++
     if (externalLinkFailed) index++
     if (state.selectedOffer != null) index += 2 // Section title and selected offer.
-    index++ // Admission tracking.
+    if (state.selectedOffer != null) index++ // Admission tracking.
     index++ // Catalog title.
     return index
 }
@@ -315,6 +318,7 @@ private fun AdmissionTrackingCard(
     onApplicantCodeChange: (String) -> Unit,
     onSaveApplicantCode: () -> Unit,
     onRefreshAdmissionStatus: () -> Unit,
+    onOpenSource: (String) -> Unit,
 ) {
     val applicantCodeDescription = stringResource(R.string.admission_code_hint)
     Surface(
@@ -338,6 +342,7 @@ private fun AdmissionTrackingCard(
                 color = tseletrackMut,
                 style = MaterialTheme.typography.bodySmall,
             )
+            AdmissionTimeline(status?.state)
             status?.let { AdmissionStatusContent(it) }
             BasicTextField(
                 value = applicantCode,
@@ -398,6 +403,59 @@ private fun AdmissionTrackingCard(
                 color = tseletrackMut,
                 style = AppTextStyles.metricLabel,
             )
+            status?.sourceUrl?.let { sourceUrl ->
+                SmallAction(
+                    text = stringResource(R.string.admission_open_official_source),
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = sourceUrl.toSafeExternalUrlOrNull() != null,
+                    onClick = { onOpenSource(sourceUrl) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AdmissionTimeline(state: AdmissionState?) {
+    Column(verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium)) {
+        state.toAdmissionMilestones().forEach { milestone ->
+            val color = when (milestone.status) {
+                AdmissionMilestoneStatus.Completed -> tseletrackOk
+                AdmissionMilestoneStatus.Current -> tseletrackRed
+                AdmissionMilestoneStatus.Upcoming -> tseletrackLine
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(Dimension.Spacing.medium)
+                        .heightIn(min = Dimension.Spacing.medium)
+                        .background(color, MaterialTheme.shapes.extraLarge),
+                )
+                Text(
+                    text = stringResource(
+                        when (milestone.type) {
+                            AdmissionMilestoneType.OfferSelected -> R.string.admission_step_offer
+                            AdmissionMilestoneType.ApplicationFound -> R.string.admission_step_application
+                            AdmissionMilestoneType.Recommended -> R.string.admission_step_recommended
+                            AdmissionMilestoneType.Enrolled -> R.string.admission_step_enrolled
+                        },
+                    ),
+                    color = if (milestone.status == AdmissionMilestoneStatus.Upcoming) {
+                        tseletrackMut
+                    } else {
+                        tseletrackInk
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = if (milestone.status == AdmissionMilestoneStatus.Current) {
+                        FontWeight.SemiBold
+                    } else {
+                        FontWeight.Normal
+                    },
+                )
+            }
         }
     }
 }
@@ -451,9 +509,25 @@ private fun AdmissionStatusContent(status: AdmissionStatus) {
     status.sponsorName?.let {
         DetailLine(stringResource(R.string.admission_sponsor), it)
     }
+    DetailLine(stringResource(R.string.admission_quota), status.quota.asQuotaLabel())
+    status.mainPriority?.let {
+        DetailLine(stringResource(R.string.admission_priority), it.toString())
+    }
+    status.consentToEnroll?.let {
+        DetailLine(
+            stringResource(R.string.admission_consent),
+            stringResource(if (it) R.string.common_yes else R.string.common_no),
+        )
+    }
     status.warning?.let {
         Text(text = it, color = tseletrackWarn, fontSize = 11.sp, lineHeight = 15.sp)
     }
+}
+
+@Composable
+private fun String.asQuotaLabel(): String = when (lowercase()) {
+    "target", "target_quota" -> stringResource(R.string.admission_quota_target)
+    else -> this
 }
 
 @Composable
@@ -530,18 +604,23 @@ private fun TargetOfferCard(
             offer.applicationDeadline?.let {
                 DetailLine(stringResource(R.string.target_offer_deadline), it.toDisplayDate())
             }
+            offer.requestCount?.let {
+                DetailLine(stringResource(R.string.target_offer_application_count), it.toString())
+            }
             Text(
                 text = stringResource(R.string.target_offer_source),
                 color = tseletrackMut,
                 fontSize = 10.sp,
             )
-            SmallAction(
-                text = stringResource(R.string.target_offer_apply),
-                modifier = Modifier.fillMaxWidth(),
-                enabled = externalLinks.applicationUrl != null,
-                isPrimary = true,
-                onClick = { externalLinks.applicationUrl?.let(onApply) },
-            )
+            if (isSelected) {
+                SmallAction(
+                    text = stringResource(R.string.target_offer_apply),
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = externalLinks.applicationUrl != null,
+                    isPrimary = true,
+                    onClick = { externalLinks.applicationUrl?.let(onApply) },
+                )
+            }
             if (externalLinks.shouldShowSourceLink) {
                 SmallAction(
                     text = stringResource(R.string.target_offer_open_source),
@@ -560,6 +639,7 @@ private fun TargetOfferCard(
                 ),
                 modifier = Modifier.fillMaxWidth(),
                 enabled = isSelected || selectionEnabled,
+                isPrimary = !isSelected,
                 onClick = if (isSelected) onChangeSelection else onSaveToRoute,
             )
         }
@@ -638,6 +718,7 @@ private fun SmallAction(
 private fun TargetOffersMessage.asText(): String = when (this) {
     TargetOffersMessage.CatalogUpdated -> stringResource(R.string.target_offers_catalog_updated)
     TargetOffersMessage.OfferSavedToRoute -> stringResource(R.string.target_offer_saved_to_route)
+    TargetOffersMessage.SelectOfferFirst -> stringResource(R.string.admission_select_offer_first)
     TargetOffersMessage.InvalidApplicantCode -> stringResource(R.string.admission_code_invalid)
     TargetOffersMessage.ApplicantCodeSaved -> stringResource(R.string.admission_code_saved)
     TargetOffersMessage.AdmissionStatusUpdated -> stringResource(R.string.admission_status_updated)

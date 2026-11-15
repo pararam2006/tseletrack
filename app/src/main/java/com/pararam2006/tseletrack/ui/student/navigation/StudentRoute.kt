@@ -40,6 +40,14 @@ internal fun NavDestination.toStudentRoute(): StudentRoute? = when {
     else -> null
 }
 
+internal fun NavDestination.studentPageIndex(): Int? = when {
+    hasRoute<StudentRoute.Roadmap>() -> 0
+    hasRoute<StudentRoute.TargetOffers>() -> 1
+    hasRoute<StudentRoute.Documents>() -> 2
+    hasRoute<StudentRoute.Profile>() -> 3
+    else -> null
+}
+
 internal fun NavHostController.navigateToStudentRoute(route: StudentRoute) {
     navigate(route) {
         popUpTo(graph.findStartDestination().id) {

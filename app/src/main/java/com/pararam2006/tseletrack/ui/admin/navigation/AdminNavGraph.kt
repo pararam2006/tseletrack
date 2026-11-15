@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.pararam2006.tseletrack.ui.admin.AdminDataScreen
 import com.pararam2006.tseletrack.ui.admin.AdminOverviewScreen
@@ -15,6 +14,7 @@ import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
 import com.pararam2006.tseletrack.ui.common.AppErrorScreen
 import com.pararam2006.tseletrack.ui.common.AppProfileScreen
 import com.pararam2006.tseletrack.ui.common.ProfileRow
+import com.pararam2006.tseletrack.ui.navigation.PageNavHost
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -27,9 +27,10 @@ internal fun AdminNavGraph(
     val viewModel = koinViewModel<AdminViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    NavHost(
+    PageNavHost(
         navController = navController,
         startDestination = AdminRoute.Overview,
+        pageIndex = { it.adminPageIndex() },
         modifier = modifier,
     ) {
         composable<AdminRoute.Overview> {

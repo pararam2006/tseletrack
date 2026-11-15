@@ -18,3 +18,11 @@ internal fun NavDestination.toAdminRoute(): AdminRoute? = when {
     hasRoute<AdminRoute.Profile>() -> AdminRoute.Profile
     else -> null
 }
+
+internal fun NavDestination.adminPageIndex(): Int? = when {
+    hasRoute<AdminRoute.Overview>() -> 0
+    hasRoute<AdminRoute.Users>() -> 1
+    hasRoute<AdminRoute.Data>() -> 2
+    hasRoute<AdminRoute.Profile>() -> 3
+    else -> null
+}

@@ -4,7 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.NavHost
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.pararam2006.tseletrack.core.Role
@@ -17,6 +18,7 @@ import com.pararam2006.tseletrack.ui.registration.RegistrationScreen
 import com.pararam2006.tseletrack.ui.student.StudentRoot
 import com.pararam2006.tseletrack.ui.university.UniversityRoot
 import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
+import com.pararam2006.tseletrack.ui.navigation.PageNavHost
 import com.pararam2006.tseletrack.ui.session.SessionViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -36,7 +38,11 @@ fun MainNavGraph() {
         }
     }
     val startDestination = sessionState.role?.toRoute() ?: Route.Login
-    NavHost(navController, startDestination = startDestination) {
+    PageNavHost(
+        navController = navController,
+        startDestination = startDestination,
+        pageIndex = { it.mainPageIndex() },
+    ) {
         composable<Route.Login> {
             LoginScreen(
                 onLoginSuccess = { role: Role ->
@@ -100,6 +106,16 @@ fun MainNavGraph() {
             AdminRoot(onLogout = sessionViewModel::logout)
         }
     }
+}
+
+private fun NavDestination.mainPageIndex(): Int? = when {
+    hasRoute<Route.Login>() -> 0
+    hasRoute<Route.Registration>() || hasRoute<Route.CareerGuidance>() -> 1
+    hasRoute<Route.Student>() ||
+        hasRoute<Route.University>() ||
+        hasRoute<Route.Company>() ||
+        hasRoute<Route.Admin>() -> 2
+    else -> null
 }
 
 private fun Role.toRoute(): Route = when (this) {

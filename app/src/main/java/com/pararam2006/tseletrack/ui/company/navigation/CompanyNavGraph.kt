@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
 import com.pararam2006.tseletrack.ui.common.AppErrorScreen
@@ -17,6 +16,7 @@ import com.pararam2006.tseletrack.ui.company.CompanyCandidatesScreen
 import com.pararam2006.tseletrack.ui.company.CompanyViewModel
 import com.pararam2006.tseletrack.ui.events.CompanyEmployerEventsScreen
 import com.pararam2006.tseletrack.ui.events.CompanyEventsViewModel
+import com.pararam2006.tseletrack.ui.navigation.PageNavHost
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -28,9 +28,10 @@ internal fun CompanyNavGraph(
     val viewModel = koinViewModel<CompanyViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    NavHost(
+    PageNavHost(
         navController = navController,
         startDestination = CompanyRoute.Candidates,
+        pageIndex = { it.companyPageIndex() },
         modifier = modifier,
     ) {
         composable<CompanyRoute.Candidates> {

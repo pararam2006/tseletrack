@@ -7,8 +7,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.pararam2006.tseletrack.ui.career.CareerAuthGateScreen
@@ -18,6 +19,7 @@ import com.pararam2006.tseletrack.ui.career.CareerQuestionScreen
 import com.pararam2006.tseletrack.ui.career.CareerResultScreen
 import com.pararam2006.tseletrack.ui.career.CareerSyncedScreen
 import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
+import com.pararam2006.tseletrack.ui.navigation.PageNavHost
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -53,9 +55,10 @@ fun CareerGuidanceNavGraph(
     }
 
     val navController = rememberNavController()
-    NavHost(
+    PageNavHost(
         navController = navController,
         startDestination = CareerGuidanceRoute.Landing,
+        pageIndex = { it.careerGuidancePageIndex() },
     ) {
         composable<CareerGuidanceRoute.Landing> {
             LaunchedEffect(state.result, state.isSynced, isAuthenticated) {
@@ -157,6 +160,15 @@ fun CareerGuidanceNavGraph(
             )
         }
     }
+}
+
+private fun NavDestination.careerGuidancePageIndex(): Int? = when {
+    hasRoute<CareerGuidanceRoute.Landing>() -> 0
+    hasRoute<CareerGuidanceRoute.Question>() -> 1
+    hasRoute<CareerGuidanceRoute.Result>() -> 2
+    hasRoute<CareerGuidanceRoute.AuthGate>() -> 3
+    hasRoute<CareerGuidanceRoute.Synced>() -> 3
+    else -> null
 }
 
 private fun NavHostController.returnToLanding() {

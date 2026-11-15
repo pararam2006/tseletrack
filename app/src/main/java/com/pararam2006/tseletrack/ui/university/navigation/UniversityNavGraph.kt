@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
 import com.pararam2006.tseletrack.ui.common.AppErrorScreen
@@ -18,6 +17,7 @@ import com.pararam2006.tseletrack.ui.university.UniversityStudentsScreen
 import com.pararam2006.tseletrack.ui.university.UniversityAdmissionAnalyticsScreen
 import com.pararam2006.tseletrack.ui.university.UniversityViewModel
 import com.pararam2006.tseletrack.ui.common.openDownloadedDocument
+import com.pararam2006.tseletrack.ui.navigation.PageNavHost
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -37,9 +37,10 @@ internal fun UniversityNavGraph(
         }
     }
 
-    NavHost(
+    PageNavHost(
         navController = navController,
         startDestination = UniversityRoute.Analytics,
+        pageIndex = { it.universityPageIndex() },
         modifier = modifier,
     ) {
         composable<UniversityRoute.Queue> {

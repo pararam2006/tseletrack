@@ -10,7 +10,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.pararam2006.tseletrack.ui.student.ProfileScreen
@@ -31,6 +30,7 @@ import com.pararam2006.tseletrack.ui.student.readDocumentUpload
 import com.pararam2006.tseletrack.ui.common.openDownloadedDocument
 import com.pararam2006.tseletrack.ui.events.StudentEmployerEventsScreen
 import com.pararam2006.tseletrack.ui.events.StudentEmployerEventsViewModel
+import com.pararam2006.tseletrack.ui.navigation.PageNavHost
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -40,9 +40,10 @@ internal fun StudentNavGraph(
     modifier: Modifier = Modifier,
 ) {
     val routeViewModel = koinViewModel<RouteViewModel>()
-    NavHost(
+    PageNavHost(
         navController = navController,
         startDestination = StudentRoute.Roadmap,
+        pageIndex = { it.studentPageIndex() },
         modifier = modifier,
     ) {
         composable<StudentRoute.Roadmap> {

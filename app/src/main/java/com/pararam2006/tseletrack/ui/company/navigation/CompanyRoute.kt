@@ -18,3 +18,11 @@ internal fun NavDestination.toCompanyRoute(): CompanyRoute? = when {
     hasRoute<CompanyRoute.Profile>() -> CompanyRoute.Profile
     else -> null
 }
+
+internal fun NavDestination.companyPageIndex(): Int? = when {
+    hasRoute<CompanyRoute.Candidates>() -> 0
+    hasRoute<CompanyRoute.Events>() -> 1
+    hasRoute<CompanyRoute.Analytics>() -> 2
+    hasRoute<CompanyRoute.Profile>() -> 3
+    else -> null
+}

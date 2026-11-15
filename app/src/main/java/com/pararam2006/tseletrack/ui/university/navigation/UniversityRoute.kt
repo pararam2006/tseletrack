@@ -18,3 +18,11 @@ internal fun NavDestination.toUniversityRoute(): UniversityRoute? = when {
     hasRoute<UniversityRoute.Profile>() -> UniversityRoute.Profile
     else -> null
 }
+
+internal fun NavDestination.universityPageIndex(): Int? = when {
+    hasRoute<UniversityRoute.Analytics>() -> 0
+    hasRoute<UniversityRoute.Queue>() -> 1
+    hasRoute<UniversityRoute.Students>() -> 2
+    hasRoute<UniversityRoute.Profile>() -> 3
+    else -> null
+}

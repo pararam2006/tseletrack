@@ -55,7 +55,20 @@ data class TargetOffersUiState(
         }
 
     val canSaveApplicantCode: Boolean
-        get() = selectedOffer != null && applicantCode.length in 6..20 && !isSavingCode
+        get() = selectedOffer != null &&
+            applicantCode.length in 6..20 &&
+            !isSavingCode &&
+            !isRefreshingStatus &&
+            selectingOfferId == null
+
+    val canSelectOffer: Boolean
+        get() = selectingOfferId == null && !isSavingCode && !isRefreshingStatus
+
+    val canRefreshAdmissionStatus: Boolean
+        get() = admissionStatus != null &&
+            !isRefreshingStatus &&
+            !isSavingCode &&
+            selectingOfferId == null
 }
 
 class TargetOffersViewModel(
@@ -112,11 +125,11 @@ class TargetOffersViewModel(
     }
 
     fun saveOfferToRoute(offerId: String) {
-        if (_uiState.value.selectingOfferId != null) return
+        if (!_uiState.value.canSelectOffer) return
+        _uiState.update {
+            it.copy(selectingOfferId = offerId, actionMessage = null)
+        }
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(selectingOfferId = offerId, actionMessage = null)
-            }
             try {
                 val selection = repository.chooseTargetOffer(offerId)
                 _uiState.update {
@@ -156,18 +169,23 @@ class TargetOffersViewModel(
             }
             return
         }
-        if (_uiState.value.isSavingCode) return
+        if (!state.canSaveApplicantCode) return
+        val selectedOfferId = state.selectedOffer.id
+        _uiState.update { it.copy(isSavingCode = true, actionMessage = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSavingCode = true, actionMessage = null) }
             try {
                 val status = repository.saveApplicantCode(code)
-                _uiState.update {
-                    it.copy(
-                        isSavingCode = false,
-                        applicantCode = "",
-                        admissionStatus = status,
-                        actionMessage = TargetOffersMessage.ApplicantCodeSaved,
-                    )
+                _uiState.update { current ->
+                    if (current.selectedOffer?.id == selectedOfferId) {
+                        current.copy(
+                            isSavingCode = false,
+                            applicantCode = "",
+                            admissionStatus = status,
+                            actionMessage = TargetOffersMessage.ApplicantCodeSaved,
+                        )
+                    } else {
+                        current
+                    }
                 }
             } catch (error: Exception) {
                 _uiState.update {
@@ -181,17 +199,23 @@ class TargetOffersViewModel(
     }
 
     fun refreshAdmissionStatus() {
-        if (_uiState.value.isRefreshingStatus) return
+        val state = _uiState.value
+        if (!state.canRefreshAdmissionStatus) return
+        val selectedOfferId = state.selectedOffer?.id ?: return
+        _uiState.update { it.copy(isRefreshingStatus = true, actionMessage = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshingStatus = true, actionMessage = null) }
             try {
                 val status = repository.refreshAdmissionStatus()
-                _uiState.update {
-                    it.copy(
-                        isRefreshingStatus = false,
-                        admissionStatus = status,
-                        actionMessage = TargetOffersMessage.AdmissionStatusUpdated,
-                    )
+                _uiState.update { current ->
+                    if (current.selectedOffer?.id == selectedOfferId) {
+                        current.copy(
+                            isRefreshingStatus = false,
+                            admissionStatus = status,
+                            actionMessage = TargetOffersMessage.AdmissionStatusUpdated,
+                        )
+                    } else {
+                        current
+                    }
                 }
             } catch (error: Exception) {
                 _uiState.update {

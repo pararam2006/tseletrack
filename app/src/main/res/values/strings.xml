@@ -1,6 +1,6 @@
 <resources>
+    <string name="common_retry">Повторить</string>
     <string name="app_name">tseletrack</string>
-    <string name="login_brand_mark">ЦТ</string>
     <string name="login_title">ЦелеТрек</string>
     <string name="login_subtitle">Новые горизонты</string>
     <string name="login_email">Email</string>
@@ -98,6 +98,7 @@
     <string name="target_offer_application_count">Заявлений на предложение</string>
     <string name="target_offer_open_source">Открыть на «Работе России»</string>
     <string name="target_offer_choose_another">Смотреть другие предложения</string>
+    <string name="target_offer_employer_events">Мероприятия работодателя</string>
     <string name="target_offer_open_link_error">Не удалось открыть официальный сайт. Проверьте ссылку и наличие браузера.</string>
     <string name="target_offers_catalog_updated">Каталог обновлён</string>
     <string name="target_offer_saved_to_route">Предложение сохранено в маршруте. Подтвердите поступление по коду.</string>
@@ -215,6 +216,23 @@
     <string name="university_report_email_body">Актуальные данные о количестве заявлений по целевым предложениям ТулГУ — во вложении.</string>
     <string name="university_report_error">Не удалось подготовить файл отчёта.</string>
     <string name="tab_candidates">Кандидаты</string>
+    <string name="tab_events">События</string>
+    <string name="employer_events_title">Мероприятия</string>
+    <string name="employer_events_company_title">Мероприятия</string>
+    <string name="employer_events_student_intro">Познакомьтесь с предприятием, профессиями и будущими наставниками до подачи заявления.</string>
+    <string name="employer_events_empty">У этого работодателя пока нет предстоящих мероприятий.</string>
+    <string name="employer_events_company_empty">Созданных мероприятий пока нет. В демоверсии события доступны для организаций из каталога.</string>
+    <string name="employer_events_company_summary">Мероприятий: %1$d · Всего записей: %2$d</string>
+    <string name="employer_event_registration_count">Записались %1$d из %2$d</string>
+    <string name="employer_event_places_left">Свободно: %1$d</string>
+    <string name="employer_event_registered">Вы записаны</string>
+    <string name="employer_event_register">Записаться</string>
+    <string name="employer_event_cancel">Отменить запись</string>
+    <string name="employer_event_updating">Сохраняем…</string>
+    <string name="employer_event_full">Свободных мест нет</string>
+    <string name="employer_event_latest_participants">Последние записи</string>
+    <string name="employer_event_no_participants">Записей пока нет</string>
+    <string name="employer_event_more_participants">И ещё %1$d участников</string>
     <string name="tab_overview">Обзор</string>
     <string name="tab_users">Пользователи</string>
     <string name="tab_data">Данные</string>

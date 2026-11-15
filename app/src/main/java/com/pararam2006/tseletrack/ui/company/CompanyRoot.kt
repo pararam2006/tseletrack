@@ -20,6 +20,7 @@ import com.pararam2006.tseletrack.ui.theme.tseletrackBg
 
 private val companyTabs: List<AppBottomTab<CompanyRoute>> = listOf(
     AppBottomTab(CompanyRoute.Candidates, R.string.tab_candidates, R.drawable.ic_nav_students, "company_tab_candidates"),
+    AppBottomTab(CompanyRoute.Events, R.string.tab_events, R.drawable.ic_nav_queue, "company_tab_events"),
     AppBottomTab(CompanyRoute.Analytics, R.string.tab_analytics, R.drawable.ic_nav_analytics, "company_tab_analytics"),
     AppBottomTab(CompanyRoute.Profile, R.string.tab_profile, R.drawable.ic_nav_profile, "company_tab_profile"),
 )

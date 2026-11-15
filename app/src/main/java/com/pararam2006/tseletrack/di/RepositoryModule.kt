@@ -6,6 +6,8 @@ import com.pararam2006.tseletrack.data.auth.AuthRepository
 import com.pararam2006.tseletrack.data.auth.NetworkAuthRepository
 import com.pararam2006.tseletrack.data.company.CompanyRepository
 import com.pararam2006.tseletrack.data.company.NetworkCompanyRepository
+import com.pararam2006.tseletrack.data.events.EmployerEventsRepository
+import com.pararam2006.tseletrack.data.events.LocalEmployerEventsRepository
 import com.pararam2006.tseletrack.data.student.AcademicPerformanceRepository
 import com.pararam2006.tseletrack.data.student.NetworkAcademicPerformanceRepository
 import com.pararam2006.tseletrack.data.student.NetworkStudentRepository
@@ -21,7 +23,7 @@ import com.pararam2006.tseletrack.data.university.UniversityRepository
 import org.koin.dsl.module
 
 val repositoryModule = module {
-    single<AuthRepository> { NetworkAuthRepository(get(), get(), get(), get()) }
+    single<AuthRepository> { NetworkAuthRepository(get(), get(), get(), get(), get()) }
     single { NetworkStudentRepository(get()) }
     single { StubStudentRepository(get()) }
     single<StudentRepository> { SwitchingStudentRepository(get(), get(), get()) }
@@ -35,5 +37,6 @@ val repositoryModule = module {
     single { StubUniversityRepository(get()) }
     single<UniversityRepository> { SwitchingUniversityRepository(get(), get(), get()) }
     single<CompanyRepository> { NetworkCompanyRepository(get()) }
+    single<EmployerEventsRepository> { LocalEmployerEventsRepository(get(), get()) }
     single<AdminRepository> { NetworkAdminRepository(get()) }
 }

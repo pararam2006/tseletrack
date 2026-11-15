@@ -224,18 +224,22 @@ internal fun AppPrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(Dimension.Size.button)
-            .background(tseletrackRed, MaterialTheme.shapes.medium)
-            .clickable(role = Role.Button, onClick = onClick),
+            .background(
+                if (enabled) tseletrackRed else tseletrackLine,
+                MaterialTheme.shapes.medium,
+            )
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            color = tseletrackWhite,
+            color = if (enabled) tseletrackWhite else tseletrackMut,
             style = MaterialTheme.typography.labelLarge,
         )
     }

@@ -23,6 +23,9 @@ sealed interface StudentRoute {
     data object AcademicPerformance : StudentRoute
 
     @Serializable
+    data class EmployerEvents(val organizationName: String) : StudentRoute
+
+    @Serializable
     data object Profile : StudentRoute
 }
 
@@ -32,6 +35,7 @@ internal fun NavDestination.toStudentRoute(): StudentRoute? = when {
     hasRoute<StudentRoute.CareerGuidance>() -> StudentRoute.CareerGuidance
     hasRoute<StudentRoute.Documents>() -> StudentRoute.Documents
     hasRoute<StudentRoute.AcademicPerformance>() -> StudentRoute.AcademicPerformance
+    hasRoute<StudentRoute.EmployerEvents>() -> null
     hasRoute<StudentRoute.Profile>() -> StudentRoute.Profile
     else -> null
 }

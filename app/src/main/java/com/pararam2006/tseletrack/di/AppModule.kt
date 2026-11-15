@@ -5,6 +5,7 @@ import org.koin.dsl.module
 val appModule = module {
     includes(
         storageModule,
+        sessionModule,
         networkModule,
         demoModule,
         careerGuidanceModule,

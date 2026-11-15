@@ -2,6 +2,8 @@ package com.pararam2006.tseletrack.data.network
 
 import com.pararam2006.tseletrack.data.storage.TokenStore
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
@@ -9,7 +11,6 @@ import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
-import io.ktor.client.plugins.auth.clearAuthTokens
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.statement.bodyAsText
@@ -32,6 +33,21 @@ internal fun createHttpClient(
     json: Json,
     tokenStore: TokenStore,
 ): HttpClient = HttpClient(OkHttp) {
+    configureClient(json, tokenStore)
+}
+
+internal fun createHttpClient(
+    engine: HttpClientEngine,
+    json: Json,
+    tokenStore: TokenStore,
+): HttpClient = HttpClient(engine) {
+    configureClient(json, tokenStore)
+}
+
+private fun HttpClientConfig<*>.configureClient(
+    json: Json,
+    tokenStore: TokenStore,
+) {
     expectSuccess = true
 
     defaultRequest {
@@ -43,6 +59,10 @@ internal fun createHttpClient(
     }
     install(Auth) {
         bearer {
+            // DataStore is the single source of truth for the session. Keeping a second
+            // token cache inside Ktor can leave the client with stale credentials after
+            // the app returns from an external system screen or is recreated.
+            cacheTokens = false
             loadTokens {
                 tokenStore.getToken()?.let { token -> BearerTokens(token, refreshToken = "") }
             }
@@ -57,7 +77,6 @@ internal fun createHttpClient(
 }
 
 internal suspend inline fun <T> apiCall(
-    tokenStore: TokenStore,
     crossinline block: suspend () -> T,
 ): T = try {
     block()
@@ -65,7 +84,6 @@ internal suspend inline fun <T> apiCall(
     throw error
 } catch (error: ResponseException) {
     val status = error.response.status
-    if (status == HttpStatusCode.Unauthorized) tokenStore.clear()
     val serverMessage = runCatching { error.response.bodyAsText().extractServerMessage() }.getOrNull()
     throw ApiException(
         kind = status.toErrorKind(),
@@ -87,10 +105,6 @@ internal suspend inline fun <T> apiCall(
     throw error
 } catch (error: Exception) {
     throw ApiException(ApiErrorKind.Unknown, "Не удалось выполнить запрос.", cause = error)
-}
-
-internal fun HttpClient.resetBearerToken() {
-    clearAuthTokens()
 }
 
 private fun HttpStatusCode.toErrorKind(): ApiErrorKind = when (this) {

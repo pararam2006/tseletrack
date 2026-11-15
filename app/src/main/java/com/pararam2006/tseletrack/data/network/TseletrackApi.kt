@@ -235,17 +235,12 @@ class TseletrackApi(
         client.get(url("api/admin/export")).body()
     }
 
-    suspend fun onTokenChanged() {
-        client.resetBearerToken()
-    }
-
     suspend fun clearSession() {
         tokenStore.clear()
-        client.resetBearerToken()
     }
 
     private suspend inline fun <T> call(crossinline block: suspend () -> T): T =
-        apiCall(tokenStore, block)
+        apiCall(block)
 
     private fun url(path: String): String = "$baseUrl/${path.trimStart('/')}"
 

@@ -3,6 +3,8 @@ package com.pararam2006.tseletrack.di
 import com.pararam2006.tseletrack.ui.admin.AdminViewModel
 import com.pararam2006.tseletrack.ui.career.CareerGuidanceViewModel
 import com.pararam2006.tseletrack.ui.company.CompanyViewModel
+import com.pararam2006.tseletrack.ui.events.CompanyEventsViewModel
+import com.pararam2006.tseletrack.ui.events.StudentEmployerEventsViewModel
 import com.pararam2006.tseletrack.ui.login.LoginViewModel
 import com.pararam2006.tseletrack.ui.registration.RegistrationViewModel
 import com.pararam2006.tseletrack.ui.session.SessionViewModel
@@ -27,5 +29,7 @@ val viewModelModule = module {
     viewModelOf(::ProfileViewModel)
     viewModelOf(::UniversityViewModel)
     viewModelOf(::CompanyViewModel)
+    viewModelOf(::StudentEmployerEventsViewModel)
+    viewModelOf(::CompanyEventsViewModel)
     viewModelOf(::AdminViewModel)
 }

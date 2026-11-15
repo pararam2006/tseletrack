@@ -12,6 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.pararam2006.tseletrack.ui.student.ProfileScreen
 import com.pararam2006.tseletrack.ui.student.ProfileViewModel
 import com.pararam2006.tseletrack.ui.student.RouteScreen
@@ -28,6 +29,8 @@ import com.pararam2006.tseletrack.ui.common.AppErrorScreen
 import com.pararam2006.tseletrack.domain.student.StudentDocumentType
 import com.pararam2006.tseletrack.ui.student.readDocumentUpload
 import com.pararam2006.tseletrack.ui.common.openDownloadedDocument
+import com.pararam2006.tseletrack.ui.events.StudentEmployerEventsScreen
+import com.pararam2006.tseletrack.ui.events.StudentEmployerEventsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -104,8 +107,26 @@ internal fun StudentNavGraph(
                     onApplicantCodeChange = viewModel::updateApplicantCode,
                     onSaveApplicantCode = viewModel::saveApplicantCode,
                     onRefreshAdmissionStatus = viewModel::refreshAdmissionStatus,
+                    onOpenEmployerEvents = { organizationName ->
+                        navController.navigate(StudentRoute.EmployerEvents(organizationName))
+                    },
                 )
             }
+        }
+
+        composable<StudentRoute.EmployerEvents> { backStackEntry ->
+            val route = backStackEntry.toRoute<StudentRoute.EmployerEvents>()
+            val viewModel = koinViewModel<StudentEmployerEventsViewModel>()
+            val state by viewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(route.organizationName) {
+                viewModel.load(route.organizationName)
+            }
+            StudentEmployerEventsScreen(
+                state = state,
+                onBack = navController::popBackStack,
+                onRetry = viewModel::retry,
+                onToggleRegistration = viewModel::toggleRegistration,
+            )
         }
 
         composable<StudentRoute.Documents> {

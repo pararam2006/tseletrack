@@ -88,6 +88,7 @@ internal fun TargetOffersScreen(
     onApplicantCodeChange: (String) -> Unit,
     onSaveApplicantCode: () -> Unit,
     onRefreshAdmissionStatus: () -> Unit,
+    onOpenEmployerEvents: (String) -> Unit,
 ) {
     if (state.isLoading) {
         AppLoadingScreen(title = stringResource(R.string.target_offers_title))
@@ -163,6 +164,7 @@ internal fun TargetOffersScreen(
                         onSaveToRoute = {},
                         onApply = openExternalUrl,
                         onOpenSource = openExternalUrl,
+                        onOpenEmployerEvents = onOpenEmployerEvents,
                         onChangeSelection = {
                             scrollToSearchAfterExpansion = true
                             onShowCatalog()
@@ -176,6 +178,7 @@ internal fun TargetOffersScreen(
                         applicantCode = state.applicantCode,
                         status = state.admissionStatus,
                         canSave = state.canSaveApplicantCode,
+                        canRefresh = state.canRefreshAdmissionStatus,
                         isSaving = state.isSavingCode,
                         isRefreshing = state.isRefreshingStatus,
                         onApplicantCodeChange = onApplicantCodeChange,
@@ -248,10 +251,11 @@ internal fun TargetOffersScreen(
                         offer = offer,
                         isSelected = false,
                         isSelecting = state.selectingOfferId == offer.id,
-                        selectionEnabled = state.selectingOfferId == null,
+                        selectionEnabled = state.canSelectOffer,
                         onSaveToRoute = { onSaveOfferToRoute(offer.id) },
                         onApply = openExternalUrl,
                         onOpenSource = openExternalUrl,
+                        onOpenEmployerEvents = onOpenEmployerEvents,
                         onChangeSelection = {},
                     )
                 }
@@ -313,6 +317,7 @@ private fun AdmissionTrackingCard(
     applicantCode: String,
     status: AdmissionStatus?,
     canSave: Boolean,
+    canRefresh: Boolean,
     isSaving: Boolean,
     isRefreshing: Boolean,
     onApplicantCodeChange: (String) -> Unit,
@@ -347,6 +352,7 @@ private fun AdmissionTrackingCard(
             BasicTextField(
                 value = applicantCode,
                 onValueChange = onApplicantCodeChange,
+                enabled = !isSaving && !isRefreshing,
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 48.dp)
@@ -393,7 +399,7 @@ private fun AdmissionTrackingCard(
                                 R.string.admission_check_status
                             },
                         ),
-                        enabled = !isRefreshing,
+                        enabled = canRefresh,
                         onClick = onRefreshAdmissionStatus,
                     )
                 }
@@ -539,6 +545,7 @@ private fun TargetOfferCard(
     onSaveToRoute: () -> Unit,
     onApply: (String) -> Unit,
     onOpenSource: (String) -> Unit,
+    onOpenEmployerEvents: (String) -> Unit,
     onChangeSelection: () -> Unit,
 ) {
     val externalLinks = offer.externalLinks()
@@ -627,6 +634,14 @@ private fun TargetOfferCard(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = externalLinks.sourceUrl != null,
                     onClick = { externalLinks.sourceUrl?.let(onOpenSource) },
+                )
+            }
+            offer.proposerName?.takeIf(String::isNotBlank)?.let { organizationName ->
+                SmallAction(
+                    text = stringResource(R.string.target_offer_employer_events),
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = true,
+                    onClick = { onOpenEmployerEvents(organizationName) },
                 )
             }
             SmallAction(

@@ -31,14 +31,14 @@ fun StudentRoot(
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val selectedRoute = backStackEntry?.destination?.toStudentRoute() ?: StudentRoute.Roadmap
+    val selectedRoute = backStackEntry?.destination?.toStudentRoute()
     val showBottomBar = studentTabs.any { it.value == selectedRoute }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = tseletrackBg,
         bottomBar = {
-            if (showBottomBar) {
+            if (showBottomBar && selectedRoute != null) {
                 AppBottomBar(
                     tabs = studentTabs,
                     selectedTab = selectedRoute,

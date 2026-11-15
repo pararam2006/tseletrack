@@ -9,10 +9,12 @@ import com.pararam2006.tseletrack.domain.student.StudentDashboard
 import com.pararam2006.tseletrack.domain.student.TargetOffer
 import com.pararam2006.tseletrack.domain.student.TargetOfferCatalog
 import com.pararam2006.tseletrack.domain.student.TargetOfferSelection
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -168,6 +170,65 @@ class TargetOffersViewModelTest {
         )
     }
 
+    @Test
+    fun `offer cannot change while applicant code is being saved`() = runTest(dispatcher) {
+        val selected = offer("selected")
+        val saveGate = CompletableDeferred<Unit>()
+        val repository = FakeStudentRepository(
+            catalog = catalog(selected, offer("another")),
+            selection = TargetOfferSelection(selected, "selected_locally"),
+            saveApplicantCodeGate = saveGate,
+            savedAdmissionStatus = admissionStatus(AdmissionState.ApplicationFound),
+        )
+        val viewModel = TargetOffersViewModel(repository)
+        viewModel.updateApplicantCode("123456")
+
+        viewModel.saveApplicantCode()
+        viewModel.saveOfferToRoute("another")
+
+        assertTrue(viewModel.uiState.value.isSavingCode)
+        assertFalse(viewModel.uiState.value.canSelectOffer)
+        assertNull(repository.chosenOfferId)
+
+        saveGate.complete(Unit)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isSavingCode)
+        assertEquals("selected", viewModel.uiState.value.selectedOffer?.id)
+        assertEquals(AdmissionState.ApplicationFound, viewModel.uiState.value.admissionStatus?.state)
+    }
+
+    @Test
+    fun `offer and code save are blocked while admission status refreshes`() = runTest(dispatcher) {
+        val selected = offer("selected")
+        val refreshGate = CompletableDeferred<Unit>()
+        val repository = FakeStudentRepository(
+            catalog = catalog(selected, offer("another")),
+            selection = TargetOfferSelection(selected, "selected_locally"),
+            admissionStatus = admissionStatus(AdmissionState.ApplicationFound),
+            refreshAdmissionStatusGate = refreshGate,
+            refreshedAdmissionStatus = admissionStatus(AdmissionState.Recommended),
+        )
+        val viewModel = TargetOffersViewModel(repository)
+        viewModel.updateApplicantCode("123456")
+
+        viewModel.refreshAdmissionStatus()
+        viewModel.saveOfferToRoute("another")
+        viewModel.saveApplicantCode()
+
+        val pendingState = viewModel.uiState.value
+        assertTrue(pendingState.isRefreshingStatus)
+        assertFalse(pendingState.canSelectOffer)
+        assertFalse(pendingState.isSavingCode)
+        assertNull(repository.chosenOfferId)
+
+        refreshGate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(AdmissionState.Recommended, viewModel.uiState.value.admissionStatus?.state)
+        assertTrue(viewModel.uiState.value.canSelectOffer)
+    }
+
     private class FakeStudentRepository(
         private val catalog: TargetOfferCatalog = catalog(),
         private val refreshedCatalog: TargetOfferCatalog = catalog,
@@ -177,6 +238,10 @@ class TargetOffersViewModelTest {
         private val refreshError: Exception? = null,
         private val chooseError: Exception? = null,
         private val admissionStatus: AdmissionStatus? = null,
+        private val saveApplicantCodeGate: CompletableDeferred<Unit>? = null,
+        private val savedAdmissionStatus: AdmissionStatus? = null,
+        private val refreshAdmissionStatusGate: CompletableDeferred<Unit>? = null,
+        private val refreshedAdmissionStatus: AdmissionStatus? = null,
     ) : StudentRepository {
         val catalogRequests = mutableListOf<Boolean>()
         var chosenOfferId: String? = null
@@ -204,8 +269,15 @@ class TargetOffersViewModelTest {
         override suspend fun downloadDocument(
             document: com.pararam2006.tseletrack.domain.student.StudentDocument,
         ) = error("Not used")
-        override suspend fun saveApplicantCode(applicantCode: String): AdmissionStatus = error("Not used")
-        override suspend fun refreshAdmissionStatus(): AdmissionStatus = error("Not used")
+        override suspend fun saveApplicantCode(applicantCode: String): AdmissionStatus {
+            saveApplicantCodeGate?.await()
+            return checkNotNull(savedAdmissionStatus)
+        }
+
+        override suspend fun refreshAdmissionStatus(): AdmissionStatus {
+            refreshAdmissionStatusGate?.await()
+            return checkNotNull(refreshedAdmissionStatus)
+        }
         override suspend fun completeCareerGuidance() = error("Not used")
         override suspend fun logout() = error("Not used")
     }

@@ -3,6 +3,7 @@ package com.pararam2006.tseletrack.data.demo
 import com.pararam2006.tseletrack.domain.student.AdmissionState
 import com.pararam2006.tseletrack.domain.student.AcademicPerformance
 import com.pararam2006.tseletrack.domain.student.StudentDocumentStatus
+import com.pararam2006.tseletrack.domain.events.EventParticipant
 
 class DemoPlatformStore {
     var selectedOfferId: String? = null
@@ -12,6 +13,8 @@ class DemoPlatformStore {
     var contractFileName: String? = null
     var academicPerformance: AcademicPerformance? = null
     val resolvedContractIds: MutableSet<String> = mutableSetOf()
+    val eventRegistrations: MutableMap<String, MutableMap<String, EventParticipant>> =
+        mutableMapOf()
 
     fun reset() {
         selectedOfferId = null
@@ -21,6 +24,7 @@ class DemoPlatformStore {
         contractFileName = null
         academicPerformance = null
         resolvedContractIds.clear()
+        eventRegistrations.clear()
     }
 
     fun selectOffer(offerId: String) {

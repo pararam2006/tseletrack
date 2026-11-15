@@ -2,7 +2,7 @@ package com.pararam2006.tseletrack.ui.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,8 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -253,39 +254,14 @@ fun LoginScreen(
 
 @Composable
 private fun BrandMark() {
-    Box(
+    Image(
+        painter = painterResource(R.drawable.ic_login_brand),
+        contentDescription = null,
         modifier = Modifier
-            .size(100.dp)
-            .clip(AppShapes.logo)
-            .background(tseletrackRed),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Canvas(Modifier.size(width = 56.dp, height = 23.dp)) {
-                val cap = Path().apply {
-                    moveTo(size.width / 2f, 0f)
-                    lineTo(size.width, size.height * 0.38f)
-                    lineTo(size.width / 2f, size.height * 0.76f)
-                    lineTo(0f, size.height * 0.38f)
-                    close()
-                }
-                drawPath(cap, tseletrackWhite)
-                drawLine(
-                    color = tseletrackWhite,
-                    start = androidx.compose.ui.geometry.Offset(size.width * 0.84f, size.height * 0.42f),
-                    end = androidx.compose.ui.geometry.Offset(size.width * 0.84f, size.height),
-                    strokeWidth = 2.dp.toPx(),
-                )
-            }
-            Text(
-                text = stringResource(R.string.login_brand_mark),
-                color = tseletrackWhite,
-                fontSize = 31.sp,
-                lineHeight = 32.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    }
+            .size(width = 100.dp, height = 104.dp)
+            .clip(AppShapes.logo),
+        contentScale = ContentScale.FillBounds,
+    )
 }
 
 @Composable

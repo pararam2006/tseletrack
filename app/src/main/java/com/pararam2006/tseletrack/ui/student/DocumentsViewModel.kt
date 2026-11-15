@@ -6,13 +6,15 @@ import com.pararam2006.tseletrack.data.network.userMessage
 import com.pararam2006.tseletrack.data.student.StudentRepository
 import com.pararam2006.tseletrack.domain.student.StudentDocument
 import com.pararam2006.tseletrack.domain.student.StudentDocumentUpload
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
 data class DocumentsUiState(
     val isLoading: Boolean = true,
@@ -32,6 +34,9 @@ class DocumentsViewModel(
         Channel.BUFFERED,
     )
     val documentsToOpen = _documentsToOpen.receiveAsFlow()
+    private var loadJob: Job? = null
+    private var loadRequestId: Long = 0
+    private val openingDocumentIds = mutableSetOf<String>()
 
     init {
         loadDocuments()
@@ -44,10 +49,12 @@ class DocumentsViewModel(
         }
         if (_uiState.value.isUploading) return
 
+        loadJob?.cancel()
+        ++loadRequestId
+        _uiState.update {
+            it.copy(isUploading = true, actionMessage = null, isActionError = false)
+        }
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(isUploading = true, actionMessage = null, isActionError = false)
-            }
             try {
                 repository.uploadContract(document)
                 val documents = repository.loadDocuments()
@@ -59,6 +66,8 @@ class DocumentsViewModel(
                         isActionError = false,
                     )
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(
@@ -82,13 +91,18 @@ class DocumentsViewModel(
     fun openDocument(documentId: String) {
         val document = _uiState.value.documents.firstOrNull { it.id == documentId } ?: return
         if (document.fileName == null || document.downloadUrl == null) return
+        if (!openingDocumentIds.add(documentId)) return
         viewModelScope.launch {
             try {
                 _documentsToOpen.send(repository.downloadDocument(document))
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(actionMessage = error.userMessage(), isActionError = true)
                 }
+            } finally {
+                openingDocumentIds.remove(documentId)
             }
         }
     }
@@ -103,23 +117,32 @@ class DocumentsViewModel(
     }
 
     private fun loadDocuments() {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    documents = emptyList(),
-                    errorMessage = null,
-                    actionMessage = null,
-                    isActionError = false,
-                )
-            }
+        if (_uiState.value.isUploading) return
+        loadJob?.cancel()
+        val requestId = ++loadRequestId
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                errorMessage = null,
+                actionMessage = null,
+                isActionError = false,
+            )
+        }
+        loadJob = viewModelScope.launch {
             try {
-                _uiState.update {
-                    it.copy(isLoading = false, documents = repository.loadDocuments())
+                val documents = repository.loadDocuments()
+                if (requestId == loadRequestId) {
+                    _uiState.update {
+                        it.copy(isLoading = false, documents = documents)
+                    }
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = error.userMessage())
+                if (requestId == loadRequestId) {
+                    _uiState.update {
+                        it.copy(isLoading = false, errorMessage = error.userMessage())
+                    }
                 }
             }
         }

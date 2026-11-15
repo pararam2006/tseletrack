@@ -6,6 +6,8 @@ import com.pararam2006.tseletrack.data.company.CompanyRepository
 import com.pararam2006.tseletrack.data.network.userMessage
 import com.pararam2006.tseletrack.domain.role.CandidateStatus
 import com.pararam2006.tseletrack.domain.role.CompanyDashboard
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +24,7 @@ enum class CandidateFilter(val title: String) {
 data class CompanyUiState(
     val dashboard: CompanyDashboard? = null,
     val selectedFilter: CandidateFilter = CandidateFilter.All,
+    val processingCandidateId: String? = null,
     val errorMessage: String? = null,
 ) {
     val visibleCandidates
@@ -40,6 +43,8 @@ class CompanyViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CompanyUiState())
     val uiState: StateFlow<CompanyUiState> = _uiState.asStateFlow()
+    private var loadJob: Job? = null
+    private var loadRequestId: Long = 0
 
     init {
         loadDashboard()
@@ -50,38 +55,77 @@ class CompanyViewModel(
     }
 
     fun advanceCandidate(id: String, status: CandidateStatus) {
-        viewModelScope.launch {
-            try {
-                repository.updateCandidateStatus(id, status)
-                loadDashboard()
-            } catch (error: Exception) {
-                _uiState.update { it.copy(errorMessage = error.userMessage()) }
-            }
-        }
+        mutateCandidate(id) { repository.updateCandidateStatus(id, status) }
     }
 
     fun declineCandidate(id: String) {
-        viewModelScope.launch {
-            try {
-                repository.declineCandidate(id)
-                loadDashboard()
-            } catch (error: Exception) {
-                _uiState.update { it.copy(errorMessage = error.userMessage()) }
-            }
-        }
+        mutateCandidate(id) { repository.declineCandidate(id) }
     }
 
     fun openProfileRow(index: Int) = Unit
 
-    fun retry() = loadDashboard()
+    fun retry() {
+        if (_uiState.value.processingCandidateId == null) loadDashboard()
+    }
 
     private fun loadDashboard() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(errorMessage = null) }
+        if (_uiState.value.processingCandidateId != null) return
+        loadJob?.cancel()
+        val requestId = ++loadRequestId
+        _uiState.update { it.copy(errorMessage = null) }
+        loadJob = viewModelScope.launch {
             try {
-                _uiState.update { it.copy(dashboard = repository.loadDashboard()) }
+                val dashboard = repository.loadDashboard()
+                if (requestId == loadRequestId) {
+                    _uiState.update { it.copy(dashboard = dashboard) }
+                }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update { it.copy(errorMessage = error.userMessage()) }
+                if (requestId == loadRequestId) {
+                    _uiState.update { it.copy(errorMessage = error.userMessage()) }
+                }
+            }
+        }
+    }
+
+    private fun mutateCandidate(
+        candidateId: String,
+        mutation: suspend () -> Unit,
+    ) {
+        val state = _uiState.value
+        if (state.processingCandidateId != null) return
+        if (state.dashboard?.candidates?.none { it.id == candidateId } != false) return
+
+        loadJob?.cancel()
+        ++loadRequestId
+        _uiState.update {
+            it.copy(processingCandidateId = candidateId, errorMessage = null)
+        }
+        viewModelScope.launch {
+            try {
+                mutation()
+                val dashboard = repository.loadDashboard()
+                _uiState.update {
+                    if (it.processingCandidateId == candidateId) {
+                        it.copy(dashboard = dashboard, processingCandidateId = null)
+                    } else {
+                        it
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                _uiState.update {
+                    if (it.processingCandidateId == candidateId) {
+                        it.copy(
+                            processingCandidateId = null,
+                            errorMessage = error.userMessage(),
+                        )
+                    } else {
+                        it
+                    }
+                }
             }
         }
     }

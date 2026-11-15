@@ -28,7 +28,7 @@ val repositoryModule = module {
     single { StubStudentRepository(get()) }
     single<StudentRepository> { SwitchingStudentRepository(get(), get(), get()) }
     single { NetworkAcademicPerformanceRepository(get()) }
-    single { StubAcademicPerformanceRepository(get()) }
+    single { StubAcademicPerformanceRepository(get(), get()) }
     single<AcademicPerformanceRepository> {
         SwitchingAcademicPerformanceRepository(get(), get(), get())
     }

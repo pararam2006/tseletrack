@@ -40,6 +40,8 @@ internal fun AdminNavGraph(
             } else if (dashboard == null) AppLoadingScreen("Обзор")
             else AdminOverviewScreen(
                 dashboard = dashboard,
+                errorMessage = state.errorMessage,
+                isActionRunning = state.isActionRunning,
                 onUsersClick = onUsersClick,
                 onExportClick = viewModel::exportData,
             )
@@ -51,6 +53,8 @@ internal fun AdminNavGraph(
             else AdminUsersScreen(
                 users = state.visibleUsers,
                 searchQuery = state.searchQuery,
+                errorMessage = state.errorMessage,
+                isActionRunning = state.isActionRunning,
                 onSearchQueryChange = viewModel::updateSearchQuery,
                 onAddUser = viewModel::addUser,
             )
@@ -62,6 +66,8 @@ internal fun AdminNavGraph(
             } else if (dashboard == null) AppLoadingScreen("Данные")
             else AdminDataScreen(
                 events = dashboard.events,
+                errorMessage = state.errorMessage,
+                isActionRunning = state.isActionRunning,
                 onExportData = viewModel::exportData,
                 onOpenRoles = viewModel::openRoles,
                 onCreateBackup = viewModel::createBackup,

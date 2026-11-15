@@ -271,6 +271,7 @@ internal fun CareerResultScreen(
             CareerSecondaryButton(
                 text = stringResource(R.string.career_restart),
                 onClick = onRestart,
+                enabled = !isSyncing,
             )
         },
     ) { contentModifier ->
@@ -596,19 +597,27 @@ private fun CareerPrimaryButton(
 }
 
 @Composable
-private fun CareerSecondaryButton(text: String, onClick: () -> Unit) {
+private fun CareerSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
             .background(tseletrackWhite, MaterialTheme.shapes.extraLarge)
-            .border(Dimension.Size.stroke, tseletrackRed, MaterialTheme.shapes.extraLarge)
-            .clickable(role = Role.Button, onClick = onClick),
+            .border(
+                Dimension.Size.stroke,
+                if (enabled) tseletrackRed else tseletrackLine,
+                MaterialTheme.shapes.extraLarge,
+            )
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            color = tseletrackRed,
+            color = if (enabled) tseletrackRed else tseletrackMut,
             style = MaterialTheme.typography.titleMedium,
         )
     }

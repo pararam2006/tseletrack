@@ -7,6 +7,9 @@ import com.pararam2006.tseletrack.domain.student.StudentDocumentStatus
 import com.pararam2006.tseletrack.domain.student.StudentDocumentType
 import com.pararam2006.tseletrack.domain.student.StudentDocumentUpload
 import com.pararam2006.tseletrack.data.demo.DemoPlatformStore
+import com.pararam2006.tseletrack.data.session.SessionIdentity
+import com.pararam2006.tseletrack.data.session.SessionIdentityStore
+import com.pararam2006.tseletrack.core.Role
 import com.pararam2006.tseletrack.data.university.StubUniversityRepository
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -120,7 +123,10 @@ class StubStudentRepositoryTest {
             admissionState = AdmissionState.Enrolled
         }
         val studentRepository = StubStudentRepository(store)
-        val academicRepository = StubAcademicPerformanceRepository(store)
+        val identityStore = SessionIdentityStore().apply {
+            set(SessionIdentity("student-1", "Первый студент", Role.Student))
+        }
+        val academicRepository = StubAcademicPerformanceRepository(store, identityStore)
         studentRepository.uploadContract(
             StudentDocumentUpload("first-student.pdf", "application/pdf", 1024),
         )

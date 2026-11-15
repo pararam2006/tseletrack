@@ -37,9 +37,11 @@ class SessionViewModelTest {
         viewModel.onAuthenticated(Role.Student)
 
         viewModel.logout()
+        viewModel.logout()
         runCurrent()
 
         assertTrue(repository.logoutStarted.isCompleted)
+        assertEquals(1, repository.logoutCalls)
         assertTrue(viewModel.uiState.value.isLoggingOut)
         assertEquals(Role.Student, viewModel.uiState.value.role)
 
@@ -54,6 +56,7 @@ class SessionViewModelTest {
     private class DelayedLogoutAuthRepository : AuthRepository {
         val logoutStarted = CompletableDeferred<Unit>()
         val allowLogout = CompletableDeferred<Unit>()
+        var logoutCalls = 0
 
         override suspend fun authenticate(email: String, password: String) = Role.Student
 
@@ -63,6 +66,7 @@ class SessionViewModelTest {
         override suspend fun restoreSession(): Role? = null
 
         override suspend fun logout() {
+            logoutCalls++
             logoutStarted.complete(Unit)
             allowLogout.await()
         }

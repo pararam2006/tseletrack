@@ -3,12 +3,14 @@ package com.pararam2006.tseletrack.ui.student
 import com.pararam2006.tseletrack.data.student.AcademicPerformanceRepository
 import com.pararam2006.tseletrack.domain.student.AcademicPerformance
 import com.pararam2006.tseletrack.domain.student.AcademicResult
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -103,9 +105,31 @@ class AcademicPerformanceViewModelTest {
         assertEquals("", viewModel.uiState.value.groupTitle)
     }
 
+    @Test
+    fun `second connect tap is ignored while first request is pending`() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        val repository = FakeRepository(initial = null, connectGate = gate)
+        val viewModel = AcademicPerformanceViewModel(repository)
+        viewModel.updateRecordBookNumber("12345678")
+        viewModel.updateGroupTitle("ИВТ-221")
+
+        viewModel.connect()
+        viewModel.connect()
+
+        assertTrue(viewModel.uiState.value.isRefreshing)
+        assertEquals(1, repository.connectCalls)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isRefreshing)
+        assertEquals(1, repository.connectCalls)
+    }
+
     private class FakeRepository(
         var initial: AcademicPerformance?,
         private val refreshError: Boolean = false,
+        private val connectGate: CompletableDeferred<Unit>? = null,
     ) : AcademicPerformanceRepository {
         var connectCalls = 0
 
@@ -116,6 +140,7 @@ class AcademicPerformanceViewModelTest {
             groupTitle: String,
         ): AcademicPerformance {
             connectCalls += 1
+            connectGate?.await()
             return performance.copy(groupTitle = groupTitle)
         }
 

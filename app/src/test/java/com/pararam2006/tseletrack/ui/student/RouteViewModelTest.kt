@@ -15,12 +15,15 @@ import com.pararam2006.tseletrack.domain.student.StudentProfile
 import com.pararam2006.tseletrack.domain.student.TargetOffer
 import com.pararam2006.tseletrack.domain.student.TargetOfferCatalog
 import com.pararam2006.tseletrack.domain.student.TargetOfferSelection
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -84,6 +87,67 @@ class RouteViewModelTest {
             RoutePrimaryAction.ContractLocked,
             state.stages.primaryAction(state.contractStatus, state.hasSelectedOffer, state.admissionState),
         )
+    }
+
+    @Test
+    fun `late response from cancelled refresh cannot overwrite newer route`() = runTest(dispatcher) {
+        val firstGate = CompletableDeferred<Unit>()
+        val secondGate = CompletableDeferred<Unit>()
+        val repository = RacingStudentRepository(firstGate, secondGate)
+        val viewModel = RouteViewModel(repository)
+
+        viewModel.refresh()
+        secondGate.complete(Unit)
+
+        assertEquals(80, viewModel.uiState.value.progressPercent)
+
+        firstGate.complete(Unit)
+
+        assertEquals(80, viewModel.uiState.value.progressPercent)
+    }
+
+    private class RacingStudentRepository(
+        private val firstGate: CompletableDeferred<Unit>,
+        private val secondGate: CompletableDeferred<Unit>,
+    ) : StudentRepository {
+        private var dashboardCalls = 0
+
+        override suspend fun loadDashboard(): StudentDashboard {
+            dashboardCalls++
+            val call = dashboardCalls
+            withContext(NonCancellable) {
+                if (call == 1) firstGate.await() else secondGate.await()
+            }
+            return dashboard(RouteStageType.Education).copy(
+                routeProgressPercent = if (call == 1) 20 else 80,
+            )
+        }
+
+        override suspend fun loadDocuments() = listOf(
+            StudentDocument(
+                id = "contract",
+                type = StudentDocumentType.TargetContract,
+                title = "Договор",
+                description = "",
+                status = StudentDocumentStatus.Accepted,
+            ),
+        )
+
+        override suspend fun loadTargetOfferSelection() =
+            TargetOfferSelection(offer(), "selected")
+
+        override suspend fun loadAdmissionStatus() = admissionStatus(AdmissionState.Enrolled)
+        override suspend fun uploadContract(document: StudentDocumentUpload) = Unit
+        override suspend fun downloadDocument(document: StudentDocument) = error("Not used")
+        override suspend fun loadTargetOffers(forceRefresh: Boolean): TargetOfferCatalog =
+            error("Not used")
+        override suspend fun chooseTargetOffer(offerId: String): TargetOfferSelection =
+            error("Not used")
+        override suspend fun saveApplicantCode(applicantCode: String): AdmissionStatus =
+            error("Not used")
+        override suspend fun refreshAdmissionStatus(): AdmissionStatus = error("Not used")
+        override suspend fun completeCareerGuidance() = error("Not used")
+        override suspend fun logout() = error("Not used")
     }
 
     private class FakeStudentRepository(

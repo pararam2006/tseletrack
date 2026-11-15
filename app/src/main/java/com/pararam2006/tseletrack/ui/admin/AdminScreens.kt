@@ -32,6 +32,7 @@ import com.pararam2006.tseletrack.domain.role.AdminUser
 import com.pararam2006.tseletrack.domain.role.SystemEvent
 import com.pararam2006.tseletrack.ui.common.AppCard
 import com.pararam2006.tseletrack.ui.common.AppFloatingButton
+import com.pararam2006.tseletrack.ui.common.AppInlineNotice
 import com.pararam2006.tseletrack.ui.common.AppMetricCard
 import com.pararam2006.tseletrack.ui.common.AppPrimaryButton
 import com.pararam2006.tseletrack.ui.common.AppProgressBar
@@ -51,6 +52,8 @@ import com.pararam2006.tseletrack.ui.theme.tseletrackWarnTint
 @Composable
 internal fun AdminOverviewScreen(
     dashboard: AdminDashboard,
+    errorMessage: String?,
+    isActionRunning: Boolean,
     onUsersClick: () -> Unit,
     onExportClick: () -> Unit,
 ) {
@@ -61,6 +64,9 @@ internal fun AdminOverviewScreen(
                 .padding(Dimension.Padding.screen),
             verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
         ) {
+            errorMessage?.let { message ->
+                AppInlineNotice(message = message, isError = true)
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
@@ -116,7 +122,11 @@ internal fun AdminOverviewScreen(
                     .fillMaxWidth()
                     .height(42.dp)
                     .background(Color.White, MaterialTheme.shapes.medium)
-                    .clickable(role = Role.Button, onClick = onExportClick),
+                    .clickable(
+                        enabled = !isActionRunning,
+                        role = Role.Button,
+                        onClick = onExportClick,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -134,6 +144,8 @@ internal fun AdminOverviewScreen(
 internal fun AdminUsersScreen(
     users: List<AdminUser>,
     searchQuery: String,
+    errorMessage: String?,
+    isActionRunning: Boolean,
     onSearchQueryChange: (String) -> Unit,
     onAddUser: () -> Unit,
 ) {
@@ -151,6 +163,9 @@ internal fun AdminUsersScreen(
                         onValueChange = onSearchQueryChange,
                     )
                 }
+                errorMessage?.let { message ->
+                    item { AppInlineNotice(message = message, isError = true) }
+                }
                 items(users, key = AdminUser::id) { user ->
                     AdminUserCard(user)
                 }
@@ -162,6 +177,7 @@ internal fun AdminUsersScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(Dimension.Padding.screen),
+                enabled = !isActionRunning,
             )
         }
     }
@@ -224,6 +240,8 @@ private fun AdminUserCard(user: AdminUser) {
 @Composable
 internal fun AdminDataScreen(
     events: List<SystemEvent>,
+    errorMessage: String?,
+    isActionRunning: Boolean,
     onExportData: () -> Unit,
     onOpenRoles: () -> Unit,
     onCreateBackup: () -> Unit,
@@ -235,11 +253,15 @@ internal fun AdminDataScreen(
                 .fillMaxSize()
                 .padding(Dimension.Padding.screen),
         ) {
-            DataActionRow("Экспорт данных (JSON)", onExportData)
+            errorMessage?.let { message ->
+                AppInlineNotice(message = message, isError = true)
+                Spacer(Modifier.height(Dimension.Spacing.space9))
+            }
+            DataActionRow("Экспорт данных (JSON)", !isActionRunning, onExportData)
             Spacer(Modifier.height(Dimension.Spacing.space9))
-            DataActionRow("Роли и права", onOpenRoles)
+            DataActionRow("Роли и права", !isActionRunning, onOpenRoles)
             Spacer(Modifier.height(Dimension.Spacing.space9))
-            DataActionRow("Резервная копия", onCreateBackup)
+            DataActionRow("Резервная копия", !isActionRunning, onCreateBackup)
             Spacer(Modifier.height(Dimension.Layout.adminActionsBottom))
             AppCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -270,7 +292,11 @@ internal fun AdminDataScreen(
                 }
             }
             Spacer(Modifier.weight(1f))
-            AppPrimaryButton(text = "Сбросить все данные", onClick = onResetData)
+            AppPrimaryButton(
+                text = "Сбросить все данные",
+                onClick = onResetData,
+                enabled = !isActionRunning,
+            )
         }
     }
 }
@@ -278,13 +304,14 @@ internal fun AdminDataScreen(
 @Composable
 private fun DataActionRow(
     title: String,
+    enabled: Boolean,
     onClick: () -> Unit,
 ) {
     AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(54.dp)
-            .clickable(role = Role.Button, onClick = onClick),
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentPadding = Dimension.Padding.card,
     ) {
         Row(
@@ -294,7 +321,7 @@ private fun DataActionRow(
         ) {
             Text(
                 text = title,
-                color = tseletrackInk,
+                color = if (enabled) tseletrackInk else tseletrackMut,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
             )

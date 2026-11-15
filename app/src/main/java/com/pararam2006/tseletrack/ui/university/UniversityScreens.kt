@@ -29,6 +29,7 @@ import com.pararam2006.tseletrack.domain.role.UniversityDashboard
 import com.pararam2006.tseletrack.domain.role.UniversityStudentItem
 import com.pararam2006.tseletrack.ui.common.AppCard
 import com.pararam2006.tseletrack.ui.common.AppFilterChip
+import com.pararam2006.tseletrack.ui.common.AppInlineNotice
 import com.pararam2006.tseletrack.ui.common.AppMetricCard
 import com.pararam2006.tseletrack.ui.common.AppOutlinedButton
 import com.pararam2006.tseletrack.ui.common.AppPrimaryButton
@@ -47,6 +48,9 @@ import com.pararam2006.tseletrack.ui.theme.tseletrackWarnTint
 @Composable
 internal fun UniversityQueueScreen(
     dashboard: UniversityDashboard,
+    processingContractId: String?,
+    openingContractId: String?,
+    errorMessage: String?,
     onConfirm: (String) -> Unit,
     onDecline: (String) -> Unit,
     onOpenDocument: (String) -> Unit,
@@ -94,9 +98,16 @@ internal fun UniversityQueueScreen(
                     )
                 }
             }
+            errorMessage?.let { message ->
+                item { AppInlineNotice(message = message, isError = true) }
+            }
             items(dashboard.queue, key = ContractQueueItem::id) { contract ->
                 ContractQueueCard(
                     item = contract,
+                    isProcessing = processingContractId == contract.id,
+                    actionsEnabled = processingContractId == null,
+                    isOpening = openingContractId == contract.id,
+                    openEnabled = openingContractId == null,
                     onConfirm = { onConfirm(contract.id) },
                     onDecline = { onDecline(contract.id) },
                     onOpenDocument = { onOpenDocument(contract.id) },
@@ -109,6 +120,10 @@ internal fun UniversityQueueScreen(
 @Composable
 private fun ContractQueueCard(
     item: ContractQueueItem,
+    isProcessing: Boolean,
+    actionsEnabled: Boolean,
+    isOpening: Boolean,
+    openEnabled: Boolean,
     onConfirm: () -> Unit,
     onDecline: () -> Unit,
     onOpenDocument: () -> Unit,
@@ -163,22 +178,25 @@ private fun ContractQueueCard(
         Spacer(Modifier.height(Dimension.Spacing.medium))
         if (item.documentId != null && item.fileName != null) {
             AppOutlinedButton(
-                text = "Открыть PDF",
+                text = if (isOpening) "Открываем…" else "Открыть PDF",
                 onClick = onOpenDocument,
                 modifier = Modifier.fillMaxWidth(),
+                enabled = openEnabled,
             )
             Spacer(Modifier.height(Dimension.Spacing.medium))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge)) {
             AppPrimaryButton(
-                text = "Подтвердить договор",
+                text = if (isProcessing) "Обработка…" else "Подтвердить договор",
                 onClick = onConfirm,
                 modifier = Modifier.weight(1f),
+                enabled = actionsEnabled,
             )
             AppOutlinedButton(
                 text = "На доработку",
                 onClick = onDecline,
                 modifier = Modifier.height(Dimension.Size.button),
+                enabled = actionsEnabled,
             )
         }
     }

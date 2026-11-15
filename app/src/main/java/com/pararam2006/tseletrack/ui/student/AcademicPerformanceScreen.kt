@@ -159,12 +159,14 @@ private fun TrackingForm(
             value = state.recordBookNumber,
             label = stringResource(R.string.academic_record_book_hint),
             onValueChange = onRecordBookNumberChange,
+            enabled = !state.isRefreshing,
         )
         Spacer(Modifier.height(Dimension.Spacing.mediumLarge))
         AcademicTextField(
             value = state.groupTitle,
             label = stringResource(R.string.academic_group_hint),
             onValueChange = onGroupTitleChange,
+            enabled = !state.isRefreshing,
         )
         Spacer(Modifier.height(Dimension.Spacing.extraLarge))
         AppPrimaryButton(
@@ -176,6 +178,7 @@ private fun TrackingForm(
                 },
             ),
             onClick = { if (!state.isRefreshing) onConnect() },
+            enabled = !state.isRefreshing,
         )
         if (isEditing) {
             Spacer(Modifier.height(Dimension.Spacing.medium))
@@ -183,6 +186,7 @@ private fun TrackingForm(
                 text = stringResource(R.string.academic_cancel_edit),
                 onClick = onCancel,
                 modifier = Modifier.fillMaxWidth(),
+                enabled = !state.isRefreshing,
             )
         }
         Spacer(Modifier.height(Dimension.Spacing.medium))
@@ -199,10 +203,12 @@ private fun AcademicTextField(
     value: String,
     label: String,
     onValueChange: (String) -> Unit,
+    enabled: Boolean,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
+        enabled = enabled,
         modifier = Modifier.fillMaxWidth(),
         label = { Text(label) },
         singleLine = true,
@@ -284,12 +290,14 @@ private fun PerformanceSummary(
             ),
             onClick = { if (!isRefreshing) onRefresh() },
             modifier = Modifier.fillMaxWidth(),
+            enabled = !isRefreshing,
         )
         Spacer(Modifier.height(Dimension.Spacing.medium))
         AppOutlinedButton(
             text = stringResource(R.string.academic_edit_tracking),
             onClick = onEditTracking,
             modifier = Modifier.fillMaxWidth(),
+            enabled = !isRefreshing,
         )
     }
 }

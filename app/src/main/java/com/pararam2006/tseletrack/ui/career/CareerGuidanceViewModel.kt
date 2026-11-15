@@ -11,6 +11,8 @@ import com.pararam2006.tseletrack.domain.career.CareerGuidanceResult
 import com.pararam2006.tseletrack.domain.career.CareerGuidanceSnapshot
 import com.pararam2006.tseletrack.domain.career.CareerMatchSnapshot
 import com.pararam2006.tseletrack.domain.career.CareerQuestion
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,23 +48,36 @@ class CareerGuidanceViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CareerGuidanceUiState())
     val uiState: StateFlow<CareerGuidanceUiState> = _uiState.asStateFlow()
+    private var loadJob: Job? = null
+    private var persistJob: Job? = null
+    private var journeyGeneration: Long = 0
 
     init {
-        viewModelScope.launch {
+        val generation = journeyGeneration
+        loadJob = viewModelScope.launch {
             val snapshot = store.load()
-            _uiState.value = CareerGuidanceUiState(
-                isLoading = false,
-                questionIndex = snapshot.questionIndex.coerceIn(0, CareerGuidanceContent.questions.lastIndex),
-                answers = snapshot.answers.mapValues { (_, value) -> value.toSet() },
-                result = engine.restore(snapshot.matches),
-                isSynced = snapshot.isSynced,
-            )
+            if (generation == journeyGeneration) {
+                _uiState.value = CareerGuidanceUiState(
+                    isLoading = false,
+                    questionIndex = snapshot.questionIndex.coerceIn(
+                        0,
+                        CareerGuidanceContent.questions.lastIndex,
+                    ),
+                    answers = snapshot.answers.mapValues { (_, value) -> value.toSet() },
+                    result = engine.restore(snapshot.matches),
+                    isSynced = snapshot.isSynced,
+                )
+            }
         }
     }
 
     fun startNew() {
+        if (_uiState.value.isSyncing) return
+        journeyGeneration++
+        loadJob?.cancel()
+        persistJob?.cancel()
         _uiState.value = CareerGuidanceUiState(isLoading = false)
-        viewModelScope.launch { store.clear() }
+        persistJob = viewModelScope.launch { store.clear() }
     }
 
     fun selectOption(optionId: String) {
@@ -106,19 +121,28 @@ class CareerGuidanceViewModel(
     }
 
     fun syncResult() {
-        if (_uiState.value.result == null || _uiState.value.isSyncing) return
+        val state = _uiState.value
+        if (state.result == null || state.isSyncing) return
+        val generation = journeyGeneration
+        _uiState.update { it.copy(isSyncing = true, syncError = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSyncing = true, syncError = null) }
             try {
                 studentRepository.completeCareerGuidance()
-                _uiState.update { it.copy(isSyncing = false, isSynced = true) }
-                persistSnapshotNow()
+                if (generation == journeyGeneration) {
+                    _uiState.update { it.copy(isSyncing = false, isSynced = true) }
+                    persistJob?.cancel()
+                    store.save(_uiState.value.toSnapshot())
+                }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isSyncing = false,
-                        syncError = error.userMessage(),
-                    )
+                if (generation == journeyGeneration) {
+                    _uiState.update {
+                        it.copy(
+                            isSyncing = false,
+                            syncError = error.userMessage(),
+                        )
+                    }
                 }
             }
         }
@@ -131,21 +155,20 @@ class CareerGuidanceViewModel(
     private fun persistProgress() = persistSnapshot()
 
     private fun persistSnapshot() {
-        viewModelScope.launch { persistSnapshotNow() }
+        val snapshot = _uiState.value.toSnapshot()
+        persistJob?.cancel()
+        persistJob = viewModelScope.launch { store.save(snapshot) }
     }
 
-    private suspend fun persistSnapshotNow() {
-        val state = _uiState.value
-        val matches = state.result?.matches.orEmpty().map { match ->
+    private fun CareerGuidanceUiState.toSnapshot(): CareerGuidanceSnapshot {
+        val matches = result?.matches.orEmpty().map { match ->
             CareerMatchSnapshot(match.direction.id, match.percent)
         }
-        store.save(
-            CareerGuidanceSnapshot(
-                questionIndex = state.questionIndex,
-                answers = state.answers.mapValues { (_, value) -> value.toList().sorted() },
-                matches = matches,
-                isSynced = state.isSynced,
-            ),
+        return CareerGuidanceSnapshot(
+            questionIndex = questionIndex,
+            answers = answers.mapValues { (_, value) -> value.toList().sorted() },
+            matches = matches,
+            isSynced = isSynced,
         )
     }
 }

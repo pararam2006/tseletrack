@@ -28,6 +28,7 @@ import com.pararam2006.tseletrack.domain.role.CandidateItem
 import com.pararam2006.tseletrack.domain.role.CandidateStatus
 import com.pararam2006.tseletrack.ui.common.AppCard
 import com.pararam2006.tseletrack.ui.common.AppFilterChip
+import com.pararam2006.tseletrack.ui.common.AppInlineNotice
 import com.pararam2006.tseletrack.ui.common.AppOutlinedButton
 import com.pararam2006.tseletrack.ui.common.AppPrimaryButton
 import com.pararam2006.tseletrack.ui.common.AppProgressBar
@@ -43,6 +44,8 @@ import com.pararam2006.tseletrack.ui.theme.tseletrackRedTint
 internal fun CompanyCandidatesScreen(
     candidates: List<CandidateItem>,
     selectedFilter: CandidateFilter,
+    processingCandidateId: String?,
+    errorMessage: String?,
     onFilterSelected: (CandidateFilter) -> Unit,
     onAdvance: (String, CandidateStatus) -> Unit,
     onDecline: (String) -> Unit,
@@ -68,9 +71,14 @@ internal fun CompanyCandidatesScreen(
                     }
                 }
             }
+            errorMessage?.let { message ->
+                item { AppInlineNotice(message = message, isError = true) }
+            }
             items(candidates, key = CandidateItem::id) { candidate ->
                 CandidateCard(
                     candidate = candidate,
+                    isProcessing = processingCandidateId == candidate.id,
+                    actionsEnabled = processingCandidateId == null,
                     onAdvance = { onAdvance(candidate.id, candidate.nextStatus()) },
                     onDecline = { onDecline(candidate.id) },
                 )
@@ -82,6 +90,8 @@ internal fun CompanyCandidatesScreen(
 @Composable
 private fun CandidateCard(
     candidate: CandidateItem,
+    isProcessing: Boolean,
+    actionsEnabled: Boolean,
     onAdvance: () -> Unit,
     onDecline: () -> Unit,
 ) {
@@ -141,12 +151,17 @@ private fun CandidateCard(
                 }
             } else {
                 AppPrimaryButton(
-                    text = candidate.actionTitle(),
+                    text = if (isProcessing) "Обработка…" else candidate.actionTitle(),
                     onClick = onAdvance,
                     modifier = Modifier.weight(1f),
+                    enabled = actionsEnabled,
                 )
             }
-            AppOutlinedButton(text = "Отзыв", onClick = onDecline)
+            AppOutlinedButton(
+                text = "Отзыв",
+                onClick = onDecline,
+                enabled = actionsEnabled,
+            )
         }
     }
 }

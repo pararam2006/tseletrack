@@ -43,6 +43,8 @@ internal fun CompanyNavGraph(
                 CompanyCandidatesScreen(
                     candidates = state.visibleCandidates,
                     selectedFilter = state.selectedFilter,
+                    processingCandidateId = state.processingCandidateId,
+                    errorMessage = state.errorMessage,
                     onFilterSelected = viewModel::selectFilter,
                     onAdvance = viewModel::advanceCandidate,
                     onDecline = viewModel::declineCandidate,

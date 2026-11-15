@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.pararam2006.tseletrack.core.Role
 import com.pararam2006.tseletrack.data.auth.AuthRepository
 import com.pararam2006.tseletrack.data.network.userMessage
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,19 +39,21 @@ class LoginViewModel(
     }
 
     fun login() {
-        if (_uiState.value.isSubmitting) return
-        viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
-            val state = _uiState.value
-            if (state.email.isBlank() || state.password.isBlank()) {
-                _uiState.update {
-                    it.copy(isSubmitting = false, errorMessage = "Введите email и пароль.")
-                }
-                return@launch
+        val state = _uiState.value
+        if (state.isSubmitting) return
+        if (state.email.isBlank() || state.password.isBlank()) {
+            _uiState.update {
+                it.copy(errorMessage = "Введите email и пароль.")
             }
+            return
+        }
+        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
+        viewModelScope.launch {
             try {
                 val role = authRepository.authenticate(state.email, state.password)
                 _authenticatedRoles.send(role)
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 _uiState.update { it.copy(errorMessage = error.userMessage()) }
             } finally {
@@ -69,10 +72,12 @@ class LoginViewModel(
 
     private fun startDemo(resolveRole: suspend () -> Role) {
         if (_uiState.value.isSubmitting) return
+        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
             try {
                 _authenticatedRoles.send(resolveRole())
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 _uiState.update { it.copy(errorMessage = error.userMessage()) }
             } finally {

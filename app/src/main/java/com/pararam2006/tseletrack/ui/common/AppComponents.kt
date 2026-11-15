@@ -56,6 +56,8 @@ import com.pararam2006.tseletrack.ui.theme.tseletrackBg
 import com.pararam2006.tseletrack.ui.theme.tseletrackInk
 import com.pararam2006.tseletrack.ui.theme.tseletrackLine
 import com.pararam2006.tseletrack.ui.theme.tseletrackMut
+import com.pararam2006.tseletrack.ui.theme.tseletrackOk
+import com.pararam2006.tseletrack.ui.theme.tseletrackOkTint
 import com.pararam2006.tseletrack.ui.theme.tseletrackRed
 import com.pararam2006.tseletrack.ui.theme.tseletrackRedTint
 import com.pararam2006.tseletrack.ui.theme.tseletrackWhite
@@ -250,20 +252,47 @@ internal fun AppOutlinedButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     Box(
         modifier = modifier
             .height(Dimension.Size.outlinedButton)
-            .border(Dimension.Size.stroke, tseletrackLine, AppShapes.outlinedButton)
-            .clickable(role = Role.Button, onClick = onClick)
+            .border(
+                Dimension.Size.stroke,
+                if (enabled) tseletrackLine else tseletrackLine.copy(alpha = 0.6f),
+                AppShapes.outlinedButton,
+            )
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = Dimension.Padding.buttonHorizontal),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            color = tseletrackInk,
+            color = if (enabled) tseletrackInk else tseletrackMut,
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
+        )
+    }
+}
+
+@Composable
+internal fun AppInlineNotice(
+    message: String,
+    isError: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val background = if (isError) tseletrackRedTint else tseletrackOkTint
+    val foreground = if (isError) tseletrackRed else tseletrackOk
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(background, MaterialTheme.shapes.medium)
+            .padding(Dimension.Spacing.large),
+    ) {
+        Text(
+            text = message,
+            color = foreground,
+            style = MaterialTheme.typography.bodySmall,
         )
     }
 }
@@ -367,13 +396,14 @@ internal fun AppFloatingButton(
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     Box(
         modifier = modifier
             .size(Dimension.Size.floatingButton)
-            .background(tseletrackRed, AppShapes.floatingButton)
+            .background(if (enabled) tseletrackRed else tseletrackLine, AppShapes.floatingButton)
             .semantics { this.contentDescription = contentDescription }
-            .clickable(role = Role.Button, onClick = onClick),
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(

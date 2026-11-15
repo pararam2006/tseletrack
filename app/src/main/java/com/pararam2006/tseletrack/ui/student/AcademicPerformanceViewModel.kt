@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.pararam2006.tseletrack.data.network.userMessage
 import com.pararam2006.tseletrack.data.student.AcademicPerformanceRepository
 import com.pararam2006.tseletrack.domain.student.AcademicPerformance
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +29,9 @@ class AcademicPerformanceViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AcademicPerformanceUiState())
     val uiState: StateFlow<AcademicPerformanceUiState> = _uiState.asStateFlow()
+    private var loadJob: Job? = null
+    private var actionJob: Job? = null
+    private var loadRequestId: Long = 0
 
     init {
         load()
@@ -51,38 +56,45 @@ class AcademicPerformanceViewModel(
     }
 
     fun connect() {
-        val recordBookNumber = uiState.value.recordBookNumber.trim()
-        val groupTitle = uiState.value.groupTitle.trim()
+        val state = uiState.value
+        if (state.isLoading || state.isRefreshing) return
+        val recordBookNumber = state.recordBookNumber.trim()
+        val groupTitle = state.groupTitle.trim()
         val validationMessage = validateTrackingInput(recordBookNumber, groupTitle)
         if (validationMessage != null) {
             _uiState.update { it.copy(message = validationMessage, isMessageError = true) }
             return
         }
 
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(isRefreshing = true, message = null, isMessageError = false)
-            }
-            runCatching { repository.connect(recordBookNumber, groupTitle) }
-                .onSuccess { performance ->
-                    _uiState.update {
-                        it.copy(
-                            isRefreshing = false,
-                            performance = performance,
-                            isEditingTracking = false,
-                            recordBookNumber = "",
-                            groupTitle = "",
-                            message = "Успеваемость подключена",
-                            isMessageError = false,
-                        )
-                    }
+        _uiState.update {
+            it.copy(isRefreshing = true, message = null, isMessageError = false)
+        }
+        actionJob = viewModelScope.launch {
+            try {
+                val performance = repository.connect(recordBookNumber, groupTitle)
+                _uiState.update {
+                    it.copy(
+                        isRefreshing = false,
+                        performance = performance,
+                        isEditingTracking = false,
+                        recordBookNumber = "",
+                        groupTitle = "",
+                        message = "Успеваемость подключена",
+                        isMessageError = false,
+                    )
                 }
-                .onFailure(::showActionError)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                showActionError(error)
+            }
         }
     }
 
     fun editTracking() {
-        val performance = uiState.value.performance ?: return
+        val state = uiState.value
+        if (state.isRefreshing) return
+        val performance = state.performance ?: return
         _uiState.update {
             it.copy(
                 isEditingTracking = true,
@@ -95,6 +107,7 @@ class AcademicPerformanceViewModel(
     }
 
     fun cancelEditing() {
+        if (uiState.value.isRefreshing) return
         _uiState.update {
             it.copy(
                 isEditingTracking = false,
@@ -107,23 +120,26 @@ class AcademicPerformanceViewModel(
     }
 
     fun refresh() {
-        if (uiState.value.isRefreshing) return
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(isRefreshing = true, message = null, isMessageError = false)
-            }
-            runCatching { repository.refresh() }
-                .onSuccess { performance ->
-                    _uiState.update {
-                        it.copy(
-                            isRefreshing = false,
-                            performance = performance,
-                            message = "Данные обновлены",
-                            isMessageError = false,
-                        )
-                    }
+        if (uiState.value.isLoading || uiState.value.isRefreshing) return
+        _uiState.update {
+            it.copy(isRefreshing = true, message = null, isMessageError = false)
+        }
+        actionJob = viewModelScope.launch {
+            try {
+                val performance = repository.refresh()
+                _uiState.update {
+                    it.copy(
+                        isRefreshing = false,
+                        performance = performance,
+                        message = "Данные обновлены",
+                        isMessageError = false,
+                    )
                 }
-                .onFailure(::showActionError)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                showActionError(error)
+            }
         }
     }
 
@@ -135,15 +151,22 @@ class AcademicPerformanceViewModel(
     }
 
     private fun load() {
-        viewModelScope.launch {
-            _uiState.value = AcademicPerformanceUiState(isLoading = true)
-            runCatching { repository.load() }
-                .onSuccess { performance ->
+        actionJob?.cancel()
+        loadJob?.cancel()
+        val requestId = ++loadRequestId
+        _uiState.value = AcademicPerformanceUiState(isLoading = true)
+        loadJob = viewModelScope.launch {
+            try {
+                val performance = repository.load()
+                if (requestId == loadRequestId) {
                     _uiState.update {
                         it.copy(isLoading = false, performance = performance)
                     }
                 }
-                .onFailure { error ->
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (requestId == loadRequestId) {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -152,6 +175,7 @@ class AcademicPerformanceViewModel(
                         )
                     }
                 }
+            }
         }
     }
 

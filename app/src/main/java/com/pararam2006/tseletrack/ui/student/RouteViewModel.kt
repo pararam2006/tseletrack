@@ -9,6 +9,8 @@ import com.pararam2006.tseletrack.domain.student.AdmissionState
 import com.pararam2006.tseletrack.domain.student.StudentDashboard
 import com.pararam2006.tseletrack.domain.student.StudentDocumentStatus
 import com.pararam2006.tseletrack.domain.student.StudentDocumentType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +32,8 @@ class RouteViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RouteUiState())
     val uiState: StateFlow<RouteUiState> = _uiState.asStateFlow()
+    private var loadJob: Job? = null
+    private var loadRequestId: Long = 0
 
     init {
         loadDashboard()
@@ -40,24 +44,31 @@ class RouteViewModel(
     fun refresh() = loadDashboard()
 
     private fun loadDashboard() {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    errorMessage = null,
-                )
-            }
+        loadJob?.cancel()
+        val requestId = ++loadRequestId
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                errorMessage = null,
+            )
+        }
+        loadJob = viewModelScope.launch {
             try {
-                loadJourneySnapshot()
+                val snapshot = loadJourneySnapshot()
+                if (requestId == loadRequestId) updateDashboard(snapshot)
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = error.userMessage())
+                if (requestId == loadRequestId) {
+                    _uiState.update {
+                        it.copy(isLoading = false, errorMessage = error.userMessage())
+                    }
                 }
             }
         }
     }
 
-    private suspend fun loadJourneySnapshot() {
+    private suspend fun loadJourneySnapshot(): JourneySnapshot {
         val dashboard = repository.loadDashboard()
         val selection = repository.loadTargetOfferSelection()
         val admissionStatus = repository.loadAdmissionStatus()
@@ -65,7 +76,7 @@ class RouteViewModel(
             .firstOrNull { it.type == StudentDocumentType.TargetContract }
             ?.status
             ?: StudentDocumentStatus.Unavailable
-        updateDashboard(
+        return JourneySnapshot(
             dashboard = dashboard,
             hasSelectedOffer = selection != null,
             admissionState = admissionStatus?.state,
@@ -73,22 +84,24 @@ class RouteViewModel(
         )
     }
 
-    private fun updateDashboard(
-        dashboard: StudentDashboard,
-        hasSelectedOffer: Boolean,
-        admissionState: AdmissionState?,
-        contractStatus: StudentDocumentStatus,
-    ) {
+    private fun updateDashboard(snapshot: JourneySnapshot) {
         _uiState.update { state ->
             state.copy(
                 isLoading = false,
-                contractStatus = contractStatus,
-                hasSelectedOffer = hasSelectedOffer,
-                admissionState = admissionState,
-                progressPercent = dashboard.routeProgressPercent,
-                stages = dashboard.routeStages,
+                contractStatus = snapshot.contractStatus,
+                hasSelectedOffer = snapshot.hasSelectedOffer,
+                admissionState = snapshot.admissionState,
+                progressPercent = snapshot.dashboard.routeProgressPercent,
+                stages = snapshot.dashboard.routeStages,
                 errorMessage = null,
             )
         }
     }
+
+    private data class JourneySnapshot(
+        val dashboard: StudentDashboard,
+        val hasSelectedOffer: Boolean,
+        val admissionState: AdmissionState?,
+        val contractStatus: StudentDocumentStatus,
+    )
 }

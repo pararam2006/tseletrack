@@ -52,6 +52,9 @@ internal fun UniversityNavGraph(
             } else {
                 UniversityQueueScreen(
                     dashboard = dashboard,
+                    processingContractId = state.processingContractId,
+                    openingContractId = state.openingContractId,
+                    errorMessage = state.errorMessage,
                     onConfirm = viewModel::confirmContract,
                     onDecline = viewModel::declineContract,
                     onOpenDocument = viewModel::openContractDocument,

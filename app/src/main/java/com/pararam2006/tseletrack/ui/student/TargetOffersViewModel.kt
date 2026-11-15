@@ -6,6 +6,8 @@ import com.pararam2006.tseletrack.data.network.userMessage
 import com.pararam2006.tseletrack.data.student.StudentRepository
 import com.pararam2006.tseletrack.domain.student.AdmissionStatus
 import com.pararam2006.tseletrack.domain.student.TargetOffer
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,15 +59,23 @@ data class TargetOffersUiState(
     val canSaveApplicantCode: Boolean
         get() = selectedOffer != null &&
             applicantCode.length in 6..20 &&
+            !isLoading &&
+            !isRefreshingCatalog &&
             !isSavingCode &&
             !isRefreshingStatus &&
             selectingOfferId == null
 
     val canSelectOffer: Boolean
-        get() = selectingOfferId == null && !isSavingCode && !isRefreshingStatus
+        get() = !isLoading &&
+            !isRefreshingCatalog &&
+            selectingOfferId == null &&
+            !isSavingCode &&
+            !isRefreshingStatus
 
     val canRefreshAdmissionStatus: Boolean
         get() = admissionStatus != null &&
+            !isLoading &&
+            !isRefreshingCatalog &&
             !isRefreshingStatus &&
             !isSavingCode &&
             selectingOfferId == null
@@ -76,6 +86,10 @@ class TargetOffersViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TargetOffersUiState())
     val uiState: StateFlow<TargetOffersUiState> = _uiState.asStateFlow()
+    private var loadJob: Job? = null
+    private var catalogJob: Job? = null
+    private var loadRequestId: Long = 0
+    private var catalogRequestId: Long = 0
 
     init {
         load()
@@ -95,30 +109,38 @@ class TargetOffersViewModel(
     }
 
     fun refreshCatalog() {
-        if (_uiState.value.isRefreshingCatalog) return
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(isRefreshingCatalog = true, actionMessage = null)
-            }
+        val state = _uiState.value
+        if (state.isLoading || state.isRefreshingCatalog || !state.canSelectOffer) return
+        val requestId = ++catalogRequestId
+        _uiState.update {
+            it.copy(isRefreshingCatalog = true, actionMessage = null)
+        }
+        catalogJob = viewModelScope.launch {
             try {
                 val catalog = repository.loadTargetOffers(forceRefresh = true)
-                _uiState.update {
-                    it.copy(
-                        isRefreshingCatalog = false,
-                        offers = catalog.items,
-                        selectedOffer = catalog.items.firstOrNull { offer ->
-                            offer.id == it.selectedOffer?.id
-                        } ?: it.selectedOffer,
-                        catalogWarning = catalog.warning,
-                        actionMessage = TargetOffersMessage.CatalogUpdated,
-                    )
+                if (requestId == catalogRequestId) {
+                    _uiState.update {
+                        it.copy(
+                            isRefreshingCatalog = false,
+                            offers = catalog.items,
+                            selectedOffer = catalog.items.firstOrNull { offer ->
+                                offer.id == it.selectedOffer?.id
+                            } ?: it.selectedOffer,
+                            catalogWarning = catalog.warning,
+                            actionMessage = TargetOffersMessage.CatalogUpdated,
+                        )
+                    }
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isRefreshingCatalog = false,
-                        actionMessage = TargetOffersMessage.Error(error.userMessage()),
-                    )
+                if (requestId == catalogRequestId) {
+                    _uiState.update {
+                        it.copy(
+                            isRefreshingCatalog = false,
+                            actionMessage = TargetOffersMessage.Error(error.userMessage()),
+                        )
+                    }
                 }
             }
         }
@@ -143,12 +165,18 @@ class TargetOffersViewModel(
                         actionMessage = TargetOffersMessage.OfferSavedToRoute,
                     )
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update {
-                    it.copy(
-                        selectingOfferId = null,
-                        actionMessage = TargetOffersMessage.Error(error.userMessage()),
-                    )
+                _uiState.update { current ->
+                    if (current.selectingOfferId == offerId) {
+                        current.copy(
+                            selectingOfferId = null,
+                            actionMessage = TargetOffersMessage.Error(error.userMessage()),
+                        )
+                    } else {
+                        current
+                    }
                 }
             }
         }
@@ -187,12 +215,18 @@ class TargetOffersViewModel(
                         current
                     }
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isSavingCode = false,
-                        actionMessage = TargetOffersMessage.Error(error.userMessage()),
-                    )
+                _uiState.update { current ->
+                    if (current.selectedOffer?.id == selectedOfferId && current.isSavingCode) {
+                        current.copy(
+                            isSavingCode = false,
+                            actionMessage = TargetOffersMessage.Error(error.userMessage()),
+                        )
+                    } else {
+                        current
+                    }
                 }
             }
         }
@@ -217,12 +251,21 @@ class TargetOffersViewModel(
                         current
                     }
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isRefreshingStatus = false,
-                        actionMessage = TargetOffersMessage.Error(error.userMessage()),
-                    )
+                _uiState.update { current ->
+                    if (
+                        current.selectedOffer?.id == selectedOfferId &&
+                        current.isRefreshingStatus
+                    ) {
+                        current.copy(
+                            isRefreshingStatus = false,
+                            actionMessage = TargetOffersMessage.Error(error.userMessage()),
+                        )
+                    } else {
+                        current
+                    }
                 }
             }
         }
@@ -231,28 +274,47 @@ class TargetOffersViewModel(
     fun retry() = load()
 
     private fun load() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        loadJob?.cancel()
+        catalogJob?.cancel()
+        val requestId = ++loadRequestId
+        ++catalogRequestId
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        loadJob = viewModelScope.launch {
             try {
                 val catalog = repository.loadTargetOffers()
-                val selection = runCatching { repository.loadTargetOfferSelection() }.getOrNull()
-                val status = runCatching { repository.loadAdmissionStatus() }.getOrNull()
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        offers = catalog.items,
-                        catalogWarning = catalog.warning,
-                        selectedOffer = selection?.offer,
-                        isCatalogExpanded = selection == null,
-                        admissionStatus = status,
-                    )
+                val selection = optionalLoad(repository::loadTargetOfferSelection)
+                val status = optionalLoad(repository::loadAdmissionStatus)
+                if (requestId == loadRequestId) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isRefreshingCatalog = false,
+                            offers = catalog.items,
+                            catalogWarning = catalog.warning,
+                            selectedOffer = selection?.offer,
+                            isCatalogExpanded = selection == null,
+                            admissionStatus = status,
+                        )
+                    }
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = error.userMessage())
+                if (requestId == loadRequestId) {
+                    _uiState.update {
+                        it.copy(isLoading = false, errorMessage = error.userMessage())
+                    }
                 }
             }
         }
+    }
+
+    private suspend fun <T> optionalLoad(block: suspend () -> T): T? = try {
+        block()
+    } catch (error: CancellationException) {
+        throw error
+    } catch (_: Exception) {
+        null
     }
 
     private companion object {

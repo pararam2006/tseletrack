@@ -41,12 +41,14 @@ class TargetOffersUiStateTest {
         assertFalse(TargetOffersUiState(applicantCode = "123456").canSaveApplicantCode)
         assertTrue(
             TargetOffersUiState(
+                isLoading = false,
                 applicantCode = "123456",
                 selectedOffer = offer("selected", "Строительство"),
             ).canSaveApplicantCode,
         )
         assertFalse(
             TargetOffersUiState(
+                isLoading = false,
                 applicantCode = "123456",
                 selectedOffer = offer("selected", "Строительство"),
                 isSavingCode = true,

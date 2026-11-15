@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.pararam2006.tseletrack.core.Role
 import com.pararam2006.tseletrack.data.auth.AuthRepository
 import com.pararam2006.tseletrack.data.network.userMessage
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -125,8 +126,8 @@ internal class RegistrationViewModel(
             return
         }
 
+        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
             try {
                 val role = authRepository.registerStudent(
                     fullName = state.fullName,
@@ -134,6 +135,8 @@ internal class RegistrationViewModel(
                     password = state.password,
                 )
                 _registrationCompleted.send(role)
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 _uiState.update { it.copy(errorMessage = error.userMessage()) }
             } finally {

@@ -1,24 +1,45 @@
 package com.pararam2006.tseletrack.data.student
 
+import com.pararam2006.tseletrack.core.Role
 import com.pararam2006.tseletrack.data.demo.DemoPlatformStore
+import com.pararam2006.tseletrack.data.session.SessionIdentityStore
 import com.pararam2006.tseletrack.domain.student.AcademicPerformance
 import com.pararam2006.tseletrack.domain.student.AcademicResult
 
 class StubAcademicPerformanceRepository(
-    private val store: DemoPlatformStore = DemoPlatformStore(),
+    private val store: DemoPlatformStore,
+    private val sessionIdentityStore: SessionIdentityStore,
 ) : AcademicPerformanceRepository {
-    override suspend fun load(): AcademicPerformance? = store.academicPerformance
+    override suspend fun load(): AcademicPerformance? =
+        store.academicPerformance(activeStudentId())
 
     override suspend fun connect(
         recordBookNumber: String,
         groupTitle: String,
-    ): AcademicPerformance = demoPerformance.copy(
-        recordBookNumberMasked = recordBookNumber.maskRecordBookNumber(),
-        groupTitle = groupTitle.trim(),
-    ).also { store.academicPerformance = it }
+    ): AcademicPerformance {
+        val studentId = activeStudentId()
+        return demoPerformance.copy(
+            recordBookNumberMasked = recordBookNumber.maskRecordBookNumber(),
+            groupTitle = groupTitle.trim(),
+        ).also { performance ->
+            store.saveAcademicPerformance(studentId, performance)
+        }
+    }
 
     override suspend fun refresh(): AcademicPerformance =
-        checkNotNull(store.academicPerformance) { "Сначала подключите успеваемость" }
+        checkNotNull(store.academicPerformance(activeStudentId())) {
+            "Сначала подключите успеваемость"
+        }
+
+    private fun activeStudentId(): String {
+        val identity = checkNotNull(sessionIdentityStore.current) {
+            "Для просмотра успеваемости войдите в аккаунт"
+        }
+        check(identity.role == Role.Student) {
+            "Успеваемость доступна только студенту"
+        }
+        return identity.id
+    }
 
     private companion object {
         val demoPerformance = AcademicPerformance(

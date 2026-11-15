@@ -8,6 +8,8 @@ import com.pararam2006.tseletrack.domain.student.StudentProfile
 import com.pararam2006.tseletrack.domain.student.RouteStage
 import com.pararam2006.tseletrack.domain.student.RouteStageStatus
 import com.pararam2006.tseletrack.domain.student.RouteStageType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +28,8 @@ class ProfileViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+    private var loadJob: Job? = null
+    private var loadRequestId: Long = 0
 
     init {
         loadDashboard()
@@ -38,22 +42,30 @@ class ProfileViewModel(
     }
 
     private fun loadDashboard() {
-        viewModelScope.launch {
-            _uiState.value = ProfileUiState(isLoading = true)
+        loadJob?.cancel()
+        val requestId = ++loadRequestId
+        _uiState.value = ProfileUiState(isLoading = true)
+        loadJob = viewModelScope.launch {
             try {
                 val dashboard = repository.loadDashboard()
                 val academicPerformanceAvailable =
                     dashboard.routeStages.hasAcademicPerformanceAccess()
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        profile = dashboard.profile,
-                        isAcademicPerformanceAvailable = academicPerformanceAvailable,
-                    )
+                if (requestId == loadRequestId) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            profile = dashboard.profile,
+                            isAcademicPerformanceAvailable = academicPerformanceAvailable,
+                        )
+                    }
                 }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = error.userMessage())
+                if (requestId == loadRequestId) {
+                    _uiState.update {
+                        it.copy(isLoading = false, errorMessage = error.userMessage())
+                    }
                 }
             }
         }

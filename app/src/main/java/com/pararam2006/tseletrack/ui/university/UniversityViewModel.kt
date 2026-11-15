@@ -6,6 +6,8 @@ import com.pararam2006.tseletrack.data.university.UniversityRepository
 import com.pararam2006.tseletrack.data.network.userMessage
 import com.pararam2006.tseletrack.domain.role.UniversityDashboard
 import com.pararam2006.tseletrack.domain.role.OfferDemandStatus
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +27,8 @@ data class UniversityUiState(
     val searchQuery: String = "",
     val selectedStage: String = "Все",
     val selectedOfferDemandFilter: OfferDemandFilter = OfferDemandFilter.All,
+    val processingContractId: String? = null,
+    val openingContractId: String? = null,
     val errorMessage: String? = null,
 ) {
     val visibleStudents
@@ -68,6 +72,8 @@ class UniversityViewModel(
         Channel.BUFFERED,
     )
     val documentsToOpen = _documentsToOpen.receiveAsFlow()
+    private var loadJob: Job? = null
+    private var loadRequestId: Long = 0
 
     init {
         loadDashboard()
@@ -86,36 +92,34 @@ class UniversityViewModel(
     }
 
     fun confirmContract(id: String) {
-        viewModelScope.launch {
-            try {
-                repository.confirmContract(id)
-                loadDashboard()
-            } catch (error: Exception) {
-                _uiState.update { it.copy(errorMessage = error.userMessage()) }
-            }
-        }
+        mutateContract(id, repository::confirmContract)
     }
 
     fun declineContract(id: String) {
-        viewModelScope.launch {
-            try {
-                repository.declineContract(id)
-                loadDashboard()
-            } catch (error: Exception) {
-                _uiState.update { it.copy(errorMessage = error.userMessage()) }
-            }
-        }
+        mutateContract(id, repository::declineContract)
     }
 
     fun openContractDocument(contractId: String) {
         val contract = _uiState.value.dashboard?.queue?.firstOrNull { it.id == contractId } ?: return
         val documentId = contract.documentId ?: return
         val fileName = contract.fileName ?: return
+        if (_uiState.value.openingContractId != null) return
+        _uiState.update { it.copy(openingContractId = contractId, errorMessage = null) }
         viewModelScope.launch {
             try {
                 _documentsToOpen.send(repository.downloadDocument(documentId, fileName))
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 _uiState.update { it.copy(errorMessage = error.userMessage()) }
+            } finally {
+                _uiState.update {
+                    if (it.openingContractId == contractId) {
+                        it.copy(openingContractId = null)
+                    } else {
+                        it
+                    }
+                }
             }
         }
     }
@@ -126,15 +130,68 @@ class UniversityViewModel(
 
     fun openProfileRow(index: Int) = Unit
 
-    fun retry() = loadDashboard()
+    fun retry() {
+        if (_uiState.value.processingContractId == null) loadDashboard()
+    }
 
     private fun loadDashboard() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(errorMessage = null) }
+        if (_uiState.value.processingContractId != null) return
+        loadJob?.cancel()
+        val requestId = ++loadRequestId
+        _uiState.update { it.copy(errorMessage = null) }
+        loadJob = viewModelScope.launch {
             try {
-                _uiState.update { it.copy(dashboard = repository.loadDashboard()) }
+                val dashboard = repository.loadDashboard()
+                if (requestId == loadRequestId) {
+                    _uiState.update { it.copy(dashboard = dashboard) }
+                }
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
-                _uiState.update { it.copy(errorMessage = error.userMessage()) }
+                if (requestId == loadRequestId) {
+                    _uiState.update { it.copy(errorMessage = error.userMessage()) }
+                }
+            }
+        }
+    }
+
+    private fun mutateContract(
+        contractId: String,
+        mutation: suspend (String) -> Unit,
+    ) {
+        val state = _uiState.value
+        if (state.processingContractId != null) return
+        if (state.dashboard?.queue?.none { it.id == contractId } != false) return
+
+        loadJob?.cancel()
+        ++loadRequestId
+        _uiState.update {
+            it.copy(processingContractId = contractId, errorMessage = null)
+        }
+        viewModelScope.launch {
+            try {
+                mutation(contractId)
+                val dashboard = repository.loadDashboard()
+                _uiState.update {
+                    if (it.processingContractId == contractId) {
+                        it.copy(dashboard = dashboard, processingContractId = null)
+                    } else {
+                        it
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                _uiState.update {
+                    if (it.processingContractId == contractId) {
+                        it.copy(
+                            processingContractId = null,
+                            errorMessage = error.userMessage(),
+                        )
+                    } else {
+                        it
+                    }
+                }
             }
         }
     }

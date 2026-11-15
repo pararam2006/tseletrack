@@ -171,6 +171,29 @@ class TargetOffersViewModelTest {
     }
 
     @Test
+    fun `second catalog refresh is ignored while first one is pending`() = runTest(dispatcher) {
+        val refreshGate = CompletableDeferred<Unit>()
+        val repository = FakeStudentRepository(
+            catalog = catalog(offer("existing")),
+            refreshedCatalog = catalog(offer("fresh")),
+            refreshCatalogGate = refreshGate,
+        )
+        val viewModel = TargetOffersViewModel(repository)
+
+        viewModel.refreshCatalog()
+        viewModel.refreshCatalog()
+
+        assertTrue(viewModel.uiState.value.isRefreshingCatalog)
+        assertEquals(listOf(false, true), repository.catalogRequests)
+
+        refreshGate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(listOf("fresh"), viewModel.uiState.value.offers.map(TargetOffer::id))
+        assertFalse(viewModel.uiState.value.isRefreshingCatalog)
+    }
+
+    @Test
     fun `offer cannot change while applicant code is being saved`() = runTest(dispatcher) {
         val selected = offer("selected")
         val saveGate = CompletableDeferred<Unit>()
@@ -236,6 +259,7 @@ class TargetOffersViewModelTest {
         private val selectionToReturn: TargetOfferSelection = TargetOfferSelection(offer("chosen"), "selected_locally"),
         private val catalogError: Exception? = null,
         private val refreshError: Exception? = null,
+        private val refreshCatalogGate: CompletableDeferred<Unit>? = null,
         private val chooseError: Exception? = null,
         private val admissionStatus: AdmissionStatus? = null,
         private val saveApplicantCodeGate: CompletableDeferred<Unit>? = null,
@@ -248,6 +272,7 @@ class TargetOffersViewModelTest {
 
         override suspend fun loadTargetOffers(forceRefresh: Boolean): TargetOfferCatalog {
             catalogRequests += forceRefresh
+            if (forceRefresh) refreshCatalogGate?.await()
             (if (forceRefresh) refreshError else catalogError)?.let { throw it }
             return if (forceRefresh) refreshedCatalog else catalog
         }

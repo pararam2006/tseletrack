@@ -11,7 +11,8 @@ class DemoPlatformStore {
     var admissionState: AdmissionState? = null
     var contractStatus: StudentDocumentStatus = StudentDocumentStatus.AwaitingUpload
     var contractFileName: String? = null
-    var academicPerformance: AcademicPerformance? = null
+    private val academicPerformanceByStudentId: MutableMap<String, AcademicPerformance> =
+        mutableMapOf()
     val resolvedContractIds: MutableSet<String> = mutableSetOf()
     val eventRegistrations: MutableMap<String, MutableMap<String, EventParticipant>> =
         mutableMapOf()
@@ -22,7 +23,7 @@ class DemoPlatformStore {
         admissionState = null
         contractStatus = StudentDocumentStatus.AwaitingUpload
         contractFileName = null
-        academicPerformance = null
+        academicPerformanceByStudentId.clear()
         resolvedContractIds.clear()
         eventRegistrations.clear()
     }
@@ -33,6 +34,16 @@ class DemoPlatformStore {
         admissionState = null
         contractStatus = StudentDocumentStatus.AwaitingUpload
         contractFileName = null
+    }
+
+    fun academicPerformance(studentId: String): AcademicPerformance? =
+        academicPerformanceByStudentId[studentId]
+
+    fun saveAcademicPerformance(
+        studentId: String,
+        performance: AcademicPerformance,
+    ) {
+        academicPerformanceByStudentId[studentId] = performance
     }
 
     fun isApplicationCountedFor(offerId: String): Boolean =

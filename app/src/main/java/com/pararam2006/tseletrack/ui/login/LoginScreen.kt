@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +52,7 @@ import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.BuildConfig
 import com.pararam2006.tseletrack.core.Role
+import com.pararam2006.tseletrack.ui.common.PasswordVisibilityButton
 import com.pararam2006.tseletrack.ui.theme.TseletrackTheme
 import com.pararam2006.tseletrack.ui.theme.tseletrackBg
 import com.pararam2006.tseletrack.ui.theme.tseletrackInk
@@ -67,6 +72,7 @@ fun LoginScreen(
     val viewModel = koinViewModel<LoginViewModel>()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
+    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.authenticatedRoles.collect(onLoginSuccess)
@@ -125,7 +131,11 @@ fun LoginScreen(
             value = state.password,
             onValueChange = viewModel::updatePassword,
             placeholder = stringResource(R.string.login_password),
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (isPasswordVisible) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done,
@@ -133,6 +143,12 @@ fun LoginScreen(
             keyboardActions = KeyboardActions(
                 onDone = { focusManager.clearFocus() },
             ),
+            trailingContent = {
+                PasswordVisibilityButton(
+                    isPasswordVisible = isPasswordVisible,
+                    onClick = { isPasswordVisible = !isPasswordVisible },
+                )
+            },
         )
 
         state.errorMessage?.let { message ->
@@ -272,6 +288,7 @@ private fun LoginTextField(
     keyboardOptions: KeyboardOptions,
     keyboardActions: KeyboardActions,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     BasicTextField(
         value = value,
@@ -286,25 +303,38 @@ private fun LoginTextField(
         keyboardActions = keyboardActions,
         cursorBrush = SolidColor(tseletrackRed),
         decorationBox = { innerTextField ->
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(MaterialTheme.shapes.large)
                     .background(tseletrackWhite)
                     .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.large)
-                    .padding(horizontal = Dimension.Spacing.extraLarge),
-                contentAlignment = Alignment.CenterStart,
+                    .padding(
+                        start = Dimension.Spacing.extraLarge,
+                        end = if (trailingContent == null) {
+                            Dimension.Spacing.extraLarge
+                        } else {
+                            Dimension.Spacing.xs
+                        },
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (value.isEmpty()) {
-                    Text(
-                        text = placeholder,
-                        color = tseletrackMut,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Normal,
-                    )
-                }
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    if (value.isEmpty()) {
+                        Text(
+                            text = placeholder,
+                            color = tseletrackMut,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Normal,
+                        )
+                    }
 
-                innerTextField()
+                    innerTextField()
+                }
+                trailingContent?.invoke()
             }
         },
     )

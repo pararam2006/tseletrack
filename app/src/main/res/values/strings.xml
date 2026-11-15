@@ -2,7 +2,7 @@
     <string name="common_retry">Повторить</string>
     <string name="app_name">tseletrack</string>
     <string name="login_title">ЦелеТрек</string>
-    <string name="login_subtitle">Новые горизонты</string>
+    <string name="login_subtitle">С нами целевик придет к своей цели</string>
     <string name="login_email">Email</string>
     <string name="login_password">Пароль</string>
     <string name="login_action">Войти</string>
@@ -50,7 +50,8 @@
     <string name="registration_edit_request">Изменить заявку</string>
     <string name="registration_back_description">Назад</string>
     <string name="registration_account_type_description">Выбрать тип аккаунта</string>
-    <string name="registration_password_visibility_description">Показать или скрыть пароль</string>
+    <string name="password_show_description">Показать пароль</string>
+    <string name="password_hide_description">Скрыть пароль</string>
     <string name="route_title">Мой маршрут</string>
     <string name="route_card_title">Мой образовательный маршрут</string>
     <string name="route_action_upload_contract">Загрузить подписанный договор</string>

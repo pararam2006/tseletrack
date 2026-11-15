@@ -53,6 +53,7 @@ import com.pararam2006.tseletrack.ui.theme.AppTextStyles
 import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.core.Role as UserRole
+import com.pararam2006.tseletrack.ui.common.PasswordVisibilityButton
 import com.pararam2006.tseletrack.ui.theme.tseletrackBg
 import com.pararam2006.tseletrack.ui.theme.tseletrackInfo
 import com.pararam2006.tseletrack.ui.theme.tseletrackInfoTint
@@ -212,12 +213,10 @@ private fun StudentRegistrationForm(
             placeholder = stringResource(R.string.login_password),
         )
         Spacer(Modifier.height(Dimension.Spacing.medium))
-        RegistrationTextField(
+        RegistrationPasswordField(
             value = state.repeatedPassword,
             onValueChange = viewModel::updateRepeatedPassword,
             placeholder = stringResource(R.string.registration_repeat_password),
-            keyboardType = KeyboardType.Password,
-            visualTransformation = PasswordVisualTransformation(),
         )
         Spacer(Modifier.height(Dimension.Spacing.space18))
         RegistrationAgreement(
@@ -534,29 +533,10 @@ private fun RegistrationPasswordField(
             PasswordVisualTransformation()
         },
         trailingContent = {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .clickable(
-                        role = Role.Button,
-                        onClickLabel = stringResource(
-                            R.string.registration_password_visibility_description,
-                        ),
-                    ) {
-                        isPasswordVisible = !isPasswordVisible
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_registration_visibility),
-                    contentDescription = stringResource(
-                        R.string.registration_password_visibility_description,
-                    ),
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
+            PasswordVisibilityButton(
+                isPasswordVisible = isPasswordVisible,
+                onClick = { isPasswordVisible = !isPasswordVisible },
+            )
         },
     )
 }

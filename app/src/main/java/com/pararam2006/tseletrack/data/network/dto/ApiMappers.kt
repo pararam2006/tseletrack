@@ -16,11 +16,18 @@ import com.pararam2006.tseletrack.domain.role.SystemEvent
 import com.pararam2006.tseletrack.domain.role.UniversityDashboard
 import com.pararam2006.tseletrack.domain.role.UniversityStudentItem
 import com.pararam2006.tseletrack.domain.student.RouteStage
+import com.pararam2006.tseletrack.domain.student.AdmissionSourceKind
+import com.pararam2006.tseletrack.domain.student.AdmissionState
+import com.pararam2006.tseletrack.domain.student.AdmissionStatus
 import com.pararam2006.tseletrack.domain.student.RouteStageStatus
+import com.pararam2006.tseletrack.domain.student.RouteStageType
 import com.pararam2006.tseletrack.domain.student.StudentDashboard
 import com.pararam2006.tseletrack.domain.student.StudentProfile
 import com.pararam2006.tseletrack.domain.student.StudentTask
 import com.pararam2006.tseletrack.domain.student.University
+import com.pararam2006.tseletrack.domain.student.TargetOffer
+import com.pararam2006.tseletrack.domain.student.TargetOfferCatalog
+import com.pararam2006.tseletrack.domain.student.TargetOfferSelection
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -42,6 +49,15 @@ internal fun StudentDashboardDto.toDomain() = StudentDashboard(
 
 private fun RouteStageDto.toDomain() = RouteStage(
     id = id.toString(),
+    type = when (stageType.lowercase()) {
+        "career_guidance" -> RouteStageType.CareerGuidance
+        "university_choice" -> RouteStageType.TargetOfferChoice
+        "contract" -> RouteStageType.Contract
+        "education" -> RouteStageType.Education
+        "employment" -> RouteStageType.Employment
+        "retention" -> RouteStageType.Retention
+        else -> RouteStageType.Other
+    },
     title = title,
     status = when (status.lowercase()) {
         "completed" -> RouteStageStatus.Completed
@@ -56,6 +72,71 @@ private fun UniversityDto.toDomain() = University(
     name = name,
     fields = fields,
     matchPercent = matchPercent.coerceIn(0, 100),
+)
+
+internal fun TargetOfferListDto.toDomain() = TargetOfferCatalog(
+    items = items.map(TargetOfferDto::toDomain),
+    isStale = isStale,
+    warning = warning,
+)
+
+internal fun TargetOfferSelectionDto.toDomain() = TargetOfferSelection(
+    offer = offer.toDomain(),
+    status = status,
+)
+
+private fun TargetOfferDto.toDomain() = TargetOffer(
+    id = id,
+    directionCode = directionCode,
+    directionName = directionName,
+    profile = profile,
+    programName = programName,
+    programLevelName = programLevelName,
+    educationFormName = educationFormName,
+    universityName = universityName,
+    proposerName = proposerName,
+    workplaceAddress = workplaceAddress,
+    applicationDeadline = applicationDeadline,
+    requestCount = requestCount,
+    requestLinkType = requestLinkType,
+    officialApplicationUrl = officialApplicationUrl?.takeIf(String::isNotBlank) ?: sourceUrl,
+    sourceUrl = sourceUrl,
+)
+
+internal fun AdmissionStatusDto.toDomain() = AdmissionStatus(
+    applicantCodeMasked = applicantCodeMasked,
+    state = when (state.lowercase()) {
+        "unknown" -> AdmissionState.Unknown
+        "application_found" -> AdmissionState.ApplicationFound
+        "recommended" -> AdmissionState.Recommended
+        "enrolled" -> AdmissionState.Enrolled
+        else -> throw ApiException(
+            ApiErrorKind.InvalidResponse,
+            "Сервер вернул неизвестный статус поступления: $state",
+        )
+    },
+    directionCode = directionCode,
+    directionName = directionName,
+    profile = profile,
+    quota = quota,
+    sponsorName = sponsorName,
+    totalScore = totalScore,
+    consentToEnroll = consentToEnroll,
+    mainPriority = mainPriority,
+    highestPassingPriority = highestPassingPriority,
+    sourceKind = when (sourceKind?.lowercase()) {
+        null -> null
+        "daily_list" -> AdmissionSourceKind.DailyList
+        "enrollment_order_list" -> AdmissionSourceKind.EnrollmentOrderList
+        else -> throw ApiException(
+            ApiErrorKind.InvalidResponse,
+            "Сервер вернул неизвестный тип источника: $sourceKind",
+        )
+    },
+    sourceUrl = sourceUrl,
+    checkedAt = checkedAt,
+    isStale = isStale,
+    warning = warning,
 )
 
 private fun StudentTaskDto.toDomain() = StudentTask(

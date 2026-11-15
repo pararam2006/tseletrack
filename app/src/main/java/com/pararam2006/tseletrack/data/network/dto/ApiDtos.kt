@@ -50,6 +50,7 @@ data class StudentProfileDto(
 @Serializable
 data class RouteStageDto(
     val id: Int,
+    @SerialName("stage_type") val stageType: String,
     val title: String,
     val status: String,
 )
@@ -88,6 +89,11 @@ data class TaskUpdateRequestDto(
 data class TaskCreateRequestDto(val title: String)
 
 @Serializable
+data class StageUpdateRequestDto(
+    val status: String,
+)
+
+@Serializable
 data class ContractDto(
     val id: Int,
     @SerialName("route_id") val routeId: Int,
@@ -97,11 +103,67 @@ data class ContractDto(
 )
 
 @Serializable
-data class UniversitySelectionDto(
-    @SerialName("route_id") val routeId: Int,
-    @SerialName("university_id") val universityId: Int,
+data class TargetOfferDto(
+    val id: String,
+    @SerialName("direction_code") val directionCode: String? = null,
+    @SerialName("direction_name") val directionName: String? = null,
+    val profile: String? = null,
+    @SerialName("program_name") val programName: String? = null,
+    @SerialName("program_level_name") val programLevelName: String? = null,
+    @SerialName("education_form_name") val educationFormName: String? = null,
+    @SerialName("university_code") val universityCode: String,
+    @SerialName("university_name") val universityName: String? = null,
+    @SerialName("proposer_name") val proposerName: String? = null,
+    @SerialName("workplace_address") val workplaceAddress: String? = null,
+    @SerialName("workplace_okved_code") val workplaceOkvedCode: String? = null,
+    @SerialName("application_deadline") val applicationDeadline: String? = null,
+    @SerialName("request_count") val requestCount: Int? = null,
+    @SerialName("request_link_type") val requestLinkType: String? = null,
+    @SerialName("official_application_url") val officialApplicationUrl: String? = null,
+    @SerialName("source_status") val sourceStatus: String? = null,
+    @SerialName("source_url") val sourceUrl: String,
+    @SerialName("fetched_at") val fetchedAt: String,
+)
+
+@Serializable
+data class TargetOfferListDto(
+    val items: List<TargetOfferDto>,
+    @SerialName("fetched_at") val fetchedAt: String? = null,
+    @SerialName("is_stale") val isStale: Boolean,
+    val warning: String? = null,
+)
+
+@Serializable
+data class TargetOfferSelectionDto(
+    val offer: TargetOfferDto,
     val status: String,
     @SerialName("selected_at") val selectedAt: String,
+)
+
+@Serializable
+data class AdmissionTrackingRequestDto(
+    @SerialName("applicant_code") val applicantCode: String,
+)
+
+@Serializable
+data class AdmissionStatusDto(
+    @SerialName("applicant_code_masked") val applicantCodeMasked: String,
+    val state: String,
+    @SerialName("direction_code") val directionCode: String? = null,
+    @SerialName("direction_name") val directionName: String? = null,
+    val profile: String? = null,
+    val quota: String,
+    @SerialName("sponsor_name") val sponsorName: String? = null,
+    @SerialName("total_score") val totalScore: Int? = null,
+    @SerialName("consent_to_enroll") val consentToEnroll: Boolean? = null,
+    @SerialName("main_priority") val mainPriority: Int? = null,
+    @SerialName("highest_passing_priority") val highestPassingPriority: Int? = null,
+    @SerialName("source_kind") val sourceKind: String? = null,
+    @SerialName("source_url") val sourceUrl: String? = null,
+    @SerialName("source_formed_at") val sourceFormedAt: String? = null,
+    @SerialName("checked_at") val checkedAt: String? = null,
+    @SerialName("is_stale") val isStale: Boolean,
+    val warning: String? = null,
 )
 
 @Serializable

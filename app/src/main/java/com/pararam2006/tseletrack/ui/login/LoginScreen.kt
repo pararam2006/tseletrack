@@ -57,6 +57,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun LoginScreen(
     onLoginSuccess: (Role) -> Unit,
     onRegistrationClick: () -> Unit,
+    onCareerGuidanceClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val viewModel = koinViewModel<LoginViewModel>()
@@ -177,6 +178,29 @@ fun LoginScreen(
             lineHeight = 16.sp,
             fontWeight = FontWeight.SemiBold,
         )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(tseletrackWhite)
+                .border(1.dp, tseletrackRed, RoundedCornerShape(12.dp))
+                .clickable(onClick = onCareerGuidanceClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.login_career_guidance),
+                color = tseletrackRed,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
@@ -276,6 +300,7 @@ private fun LoginScreenPreview() {
         LoginScreen(
             onLoginSuccess = {},
             onRegistrationClick = {},
+            onCareerGuidanceClick = {},
         )
     }
 }

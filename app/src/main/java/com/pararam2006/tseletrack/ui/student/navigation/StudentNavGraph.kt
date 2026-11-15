@@ -1,6 +1,7 @@
 package com.pararam2006.tseletrack.ui.student.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -14,8 +15,9 @@ import com.pararam2006.tseletrack.ui.student.RouteScreen
 import com.pararam2006.tseletrack.ui.student.RouteViewModel
 import com.pararam2006.tseletrack.ui.student.TasksScreen
 import com.pararam2006.tseletrack.ui.student.TasksViewModel
-import com.pararam2006.tseletrack.ui.student.UniversitiesScreen
-import com.pararam2006.tseletrack.ui.student.UniversitiesViewModel
+import com.pararam2006.tseletrack.ui.student.TargetOffersScreen
+import com.pararam2006.tseletrack.ui.student.TargetOffersViewModel
+import com.pararam2006.tseletrack.ui.career.navigation.CareerGuidanceNavGraph
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.ui.common.AppErrorScreen
 import org.koin.compose.viewmodel.koinViewModel
@@ -26,42 +28,64 @@ internal fun StudentNavGraph(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val routeViewModel = koinViewModel<RouteViewModel>()
     NavHost(
         navController = navController,
         startDestination = StudentRoute.Roadmap,
         modifier = modifier,
     ) {
         composable<StudentRoute.Roadmap> {
-            val viewModel = koinViewModel<RouteViewModel>()
-            val state by viewModel.uiState.collectAsStateWithLifecycle()
+            val state by routeViewModel.uiState.collectAsStateWithLifecycle()
             val error = state.errorMessage
             if (error != null) {
-                AppErrorScreen(stringResource(R.string.route_title), error, viewModel::retry)
+                AppErrorScreen(stringResource(R.string.route_title), error, routeViewModel::retry)
             } else {
                 RouteScreen(
                     isLoading = state.isLoading,
                     progressPercent = state.progressPercent,
                     stages = state.stages,
-                    onSignContract = viewModel::signContract,
+                    onSignContract = routeViewModel::signContract,
+                    onCareerGuidanceClick = {
+                        navController.navigate(StudentRoute.CareerGuidance)
+                    },
+                    onUniversityChoiceClick = {
+                        navController.navigateToStudentRoute(StudentRoute.TargetOffers)
+                    },
                 )
             }
         }
 
-        composable<StudentRoute.Universities> {
-            val viewModel = koinViewModel<UniversitiesViewModel>()
+        composable<StudentRoute.CareerGuidance> {
+            CareerGuidanceNavGraph(
+                isAuthenticated = true,
+                onBack = navController::popBackStack,
+                onRequestAuth = {},
+                onFinished = {
+                    routeViewModel.refresh()
+                    navController.popBackStack()
+                },
+            )
+        }
+
+        composable<StudentRoute.TargetOffers> {
+            val viewModel = koinViewModel<TargetOffersViewModel>()
             val state by viewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(state.admissionStatus?.checkedAt) {
+                if (state.admissionStatus?.checkedAt != null) routeViewModel.refresh()
+            }
             val error = state.errorMessage
             if (error != null) {
-                AppErrorScreen(stringResource(R.string.universities_title), error, viewModel::retry)
+                AppErrorScreen(stringResource(R.string.target_offers_title), error, viewModel::retry)
             } else {
-                UniversitiesScreen(
-                    isLoading = state.isLoading,
-                    universities = state.visibleUniversities,
-                    searchQuery = state.searchQuery,
-                    selectedField = state.selectedField,
+                TargetOffersScreen(
+                    state = state,
                     onSearchQueryChange = viewModel::updateSearchQuery,
-                    onFieldSelected = viewModel::selectStudyField,
-                    onChooseUniversity = viewModel::chooseUniversity,
+                    onRefreshCatalog = viewModel::refreshCatalog,
+                    onSaveOfferToRoute = viewModel::saveOfferToRoute,
+                    onShowCatalog = viewModel::showCatalog,
+                    onApplicantCodeChange = viewModel::updateApplicantCode,
+                    onSaveApplicantCode = viewModel::saveApplicantCode,
+                    onRefreshAdmissionStatus = viewModel::refreshAdmissionStatus,
                 )
             }
         }

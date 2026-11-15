@@ -7,22 +7,88 @@ enum class RouteStageStatus {
     Future,
 }
 
+enum class RouteStageType {
+    CareerGuidance,
+    TargetOfferChoice,
+    Contract,
+    Education,
+    Employment,
+    Retention,
+    Other,
+}
+
 data class RouteStage(
     val id: String,
+    val type: RouteStageType,
     val title: String,
     val status: RouteStageStatus,
 )
-
-enum class StudyField(val title: String) {
-    ComputerScience("Информатика"),
-    Engineering("Инженерия"),
-}
 
 data class University(
     val id: String,
     val name: String,
     val fields: String,
     val matchPercent: Int,
+)
+
+data class TargetOffer(
+    val id: String,
+    val directionCode: String?,
+    val directionName: String?,
+    val profile: String?,
+    val programName: String?,
+    val programLevelName: String?,
+    val educationFormName: String?,
+    val universityName: String?,
+    val proposerName: String?,
+    val workplaceAddress: String?,
+    val applicationDeadline: String?,
+    val requestCount: Int?,
+    val requestLinkType: String?,
+    val officialApplicationUrl: String,
+    val sourceUrl: String,
+)
+
+data class TargetOfferCatalog(
+    val items: List<TargetOffer>,
+    val isStale: Boolean,
+    val warning: String?,
+)
+
+data class TargetOfferSelection(
+    val offer: TargetOffer,
+    val status: String,
+)
+
+enum class AdmissionState {
+    Unknown,
+    ApplicationFound,
+    Recommended,
+    Enrolled,
+}
+
+enum class AdmissionSourceKind {
+    DailyList,
+    EnrollmentOrderList,
+}
+
+data class AdmissionStatus(
+    val applicantCodeMasked: String,
+    val state: AdmissionState,
+    val directionCode: String?,
+    val directionName: String?,
+    val profile: String?,
+    val quota: String,
+    val sponsorName: String?,
+    val totalScore: Int?,
+    val consentToEnroll: Boolean?,
+    val mainPriority: Int?,
+    val highestPassingPriority: Int?,
+    val sourceKind: AdmissionSourceKind?,
+    val sourceUrl: String?,
+    val checkedAt: String?,
+    val isStale: Boolean,
+    val warning: String?,
 )
 
 data class StudentTask(

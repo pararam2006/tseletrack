@@ -10,6 +10,9 @@ sealed interface Route {
     data object Registration : Route
 
     @Serializable
+    data object CareerGuidance : Route
+
+    @Serializable
     data object Company : Route
 
     @Serializable

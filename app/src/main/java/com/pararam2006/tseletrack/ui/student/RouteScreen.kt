@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.domain.student.RouteStage
 import com.pararam2006.tseletrack.domain.student.RouteStageStatus
+import com.pararam2006.tseletrack.domain.student.RouteStageType
 import com.pararam2006.tseletrack.ui.common.AppCard
 import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
 import com.pararam2006.tseletrack.ui.common.AppProgressBar
@@ -51,6 +52,8 @@ internal fun RouteScreen(
     progressPercent: Int,
     stages: List<RouteStage>,
     onSignContract: () -> Unit,
+    onCareerGuidanceClick: () -> Unit,
+    onUniversityChoiceClick: () -> Unit,
 ) {
     if (isLoading) {
         AppLoadingScreen(title = stringResource(R.string.route_title))
@@ -101,6 +104,11 @@ internal fun RouteScreen(
                         stage = stage,
                         isFirst = index == 0,
                         isLast = index == stages.lastIndex,
+                        onClick = when {
+                            stage.isCareerGuidance -> onCareerGuidanceClick
+                            stage.isUniversityChoice -> onUniversityChoiceClick
+                            else -> null
+                        },
                     )
                 }
             }
@@ -124,16 +132,30 @@ internal fun RouteScreen(
     }
 }
 
+private val RouteStage.isCareerGuidance: Boolean
+    get() = type == RouteStageType.CareerGuidance
+
+private val RouteStage.isUniversityChoice: Boolean
+    get() = type == RouteStageType.TargetOfferChoice
+
 @Composable
 private fun RouteStageItem(
     stage: RouteStage,
     isFirst: Boolean,
     isLast: Boolean,
+    onClick: (() -> Unit)?,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(44.dp),
+            .height(44.dp)
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(role = Role.Button, onClick = onClick)
+                } else {
+                    Modifier
+                },
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RouteStageMarker(
@@ -143,6 +165,7 @@ private fun RouteStageItem(
         )
         Spacer(Modifier.width(8.dp))
         Column(
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
@@ -155,6 +178,14 @@ private fun RouteStageItem(
             )
             Spacer(Modifier.height(2.dp))
             RouteStageStatusPill(status = stage.status)
+        }
+        if (onClick != null) {
+            Text(
+                text = stringResource(R.string.route_open_stage),
+                color = tseletrackRed,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
         }
     }
 }

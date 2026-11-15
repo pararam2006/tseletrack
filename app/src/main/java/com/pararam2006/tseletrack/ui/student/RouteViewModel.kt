@@ -41,6 +41,8 @@ class RouteViewModel(
 
     fun retry() = loadDashboard()
 
+    fun refresh() = loadDashboard()
+
     private fun loadDashboard() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }

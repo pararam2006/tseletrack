@@ -10,6 +10,7 @@ import com.pararam2006.tseletrack.core.Role
 import com.pararam2006.tseletrack.core.Route
 import com.pararam2006.tseletrack.ui.admin.AdminRoot
 import com.pararam2006.tseletrack.ui.company.CompanyRoot
+import com.pararam2006.tseletrack.ui.career.navigation.CareerGuidanceNavGraph
 import com.pararam2006.tseletrack.ui.login.LoginScreen
 import com.pararam2006.tseletrack.ui.registration.RegistrationScreen
 import com.pararam2006.tseletrack.ui.student.StudentRoot
@@ -44,6 +45,23 @@ fun MainNavGraph() {
                 onRegistrationClick = {
                     navController.navigate(Route.Registration)
                 },
+                onCareerGuidanceClick = {
+                    navController.navigate(Route.CareerGuidance)
+                },
+            )
+        }
+
+        composable<Route.CareerGuidance> {
+            CareerGuidanceNavGraph(
+                isAuthenticated = false,
+                onBack = navController::popBackStack,
+                onRequestAuth = {
+                    navController.navigate(Route.Login) {
+                        popUpTo<Route.Login> { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onFinished = navController::popBackStack,
             )
         }
 

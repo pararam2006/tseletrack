@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.domain.role.ContractQueueItem
 import com.pararam2006.tseletrack.domain.role.UniversityDashboard
 import com.pararam2006.tseletrack.domain.role.UniversityStudentItem
@@ -42,7 +43,6 @@ import com.pararam2006.tseletrack.ui.theme.tseletrackRed
 import com.pararam2006.tseletrack.ui.theme.tseletrackRedTint
 import com.pararam2006.tseletrack.ui.theme.tseletrackWarn
 import com.pararam2006.tseletrack.ui.theme.tseletrackWarnTint
-import com.pararam2006.tseletrack.ui.theme.tseletrackWhite
 
 @Composable
 internal fun UniversityQueueScreen(
@@ -53,8 +53,8 @@ internal fun UniversityQueueScreen(
     AppScreen(title = "Очередь договоров") {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(Dimension.Padding.screen),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
         ) {
             item {
                 Text(
@@ -62,9 +62,9 @@ internal fun UniversityQueueScreen(
                     modifier = Modifier
                         .background(
                             color = com.pararam2006.tseletrack.ui.theme.tseletrackOkTint,
-                            shape = RoundedCornerShape(12.dp),
+                            shape = MaterialTheme.shapes.large,
                         )
-                        .padding(horizontal = 10.dp, vertical = 3.dp),
+                        .padding(horizontal = Dimension.Spacing.mediumLarge, vertical = Dimension.Spacing.space3),
                     color = com.pararam2006.tseletrack.ui.theme.tseletrackOk,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -73,7 +73,7 @@ internal fun UniversityQueueScreen(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium),
                 ) {
                     AppMetricCard(
                         value = dashboard.studentCount.toString(),
@@ -125,7 +125,7 @@ private fun ContractQueueCard(
                     fontWeight = FontWeight.SemiBold,
                 )
             }
-            Column(modifier = Modifier.padding(start = 12.dp)) {
+            Column(modifier = Modifier.padding(start = Dimension.Spacing.large)) {
                 Text(
                     text = item.studentName,
                     color = tseletrackInk,
@@ -139,18 +139,18 @@ private fun ContractQueueCard(
                 )
             }
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Dimension.Spacing.medium))
         Text(
             text = "Ждёт подтверждения",
             modifier = Modifier
-                .background(tseletrackWarnTint, RoundedCornerShape(12.dp))
-                .padding(horizontal = 9.dp, vertical = 3.dp),
+                .background(tseletrackWarnTint, MaterialTheme.shapes.large)
+                .padding(horizontal = Dimension.Spacing.space9, vertical = Dimension.Spacing.space3),
             color = tseletrackWarn,
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium,
         )
-        Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Spacer(Modifier.height(Dimension.Spacing.medium))
+        Row(horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge)) {
             AppPrimaryButton(
                 text = "Подтвердить договор",
                 onClick = onConfirm,
@@ -176,8 +176,8 @@ internal fun UniversityStudentsScreen(
     AppScreen(title = "Студенты") {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(Dimension.Padding.screen),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
         ) {
             item {
                 AppSearchField(
@@ -189,7 +189,7 @@ internal fun UniversityStudentsScreen(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.small),
                 ) {
                     stages.forEach { stage ->
                         AppFilterChip(
@@ -212,7 +212,7 @@ internal fun UniversityStudentsScreen(
 private fun StudentProgressCard(student: UniversityStudentItem) {
     AppCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = 13.dp,
+        contentPadding = Dimension.Spacing.space13,
     ) {
         Text(
             text = student.name,
@@ -220,24 +220,24 @@ private fun StudentProgressCard(student: UniversityStudentItem) {
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
         )
-        Spacer(Modifier.height(5.dp))
+        Spacer(Modifier.height(Dimension.Spacing.space5))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.largeExtra),
         ) {
             Text(
                 text = student.stage,
                 modifier = Modifier
-                    .background(tseletrackInfoTint, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 9.dp, vertical = 3.dp),
+                    .background(tseletrackInfoTint, MaterialTheme.shapes.large)
+                    .padding(horizontal = Dimension.Spacing.space9, vertical = Dimension.Spacing.space3),
                 color = tseletrackInfo,
                 fontSize = 10.sp,
             )
             AppProgressBar(
                 percent = student.progressPercent,
                 modifier = Modifier.weight(1f),
-                height = 5.dp,
+                height = Dimension.Size.progressCompact,
             )
         }
     }

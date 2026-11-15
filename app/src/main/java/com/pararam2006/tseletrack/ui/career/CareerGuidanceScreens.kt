@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -36,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -49,11 +49,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pararam2006.tseletrack.ui.theme.AppShapes
+import com.pararam2006.tseletrack.ui.theme.AppTextStyles
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.domain.career.CareerGuidanceContent
 import com.pararam2006.tseletrack.domain.career.CareerGuidanceResult
 import com.pararam2006.tseletrack.domain.career.CareerMatch
-import com.pararam2006.tseletrack.domain.career.CareerQuestion
 import com.pararam2006.tseletrack.ui.common.AppProgressBar
 import com.pararam2006.tseletrack.ui.theme.tseletrackBg
 import com.pararam2006.tseletrack.ui.theme.tseletrackInfo
@@ -87,7 +89,7 @@ internal fun CareerGuidanceLandingScreen(
                 onClick = if (hasProgress) onResume else onStart,
             )
             if (hasProgress) {
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(Dimension.Spacing.mediumLarge))
                 CareerSecondaryButton(
                     text = stringResource(R.string.career_restart),
                     onClick = onRestart,
@@ -98,9 +100,9 @@ internal fun CareerGuidanceLandingScreen(
         Column(
             modifier = contentModifier
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 22.dp),
+                .padding(horizontal = Dimension.Spacing.xxl, vertical = Dimension.Spacing.space22),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.largeExtra),
         ) {
             HeroResourceIcon(
                 iconRes = if (hasProgress) R.drawable.ic_career_schedule else R.drawable.ic_career_radio_checked,
@@ -136,7 +138,7 @@ internal fun CareerGuidanceLandingScreen(
             if (hasProgress) {
                 SavedProgressCard(answeredCount = state.answers.size)
             } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium)) {
                     LabelChip(stringResource(R.string.career_questions_fact))
                     LabelChip(stringResource(R.string.career_time_fact))
                     LabelChip(stringResource(R.string.career_offline_fact))
@@ -183,8 +185,8 @@ internal fun CareerQuestionScreen(
         Column(
             modifier = contentModifier
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 22.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+                .padding(horizontal = Dimension.Spacing.xxl, vertical = Dimension.Spacing.space22),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.largeExtra),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -205,14 +207,12 @@ internal fun CareerQuestionScreen(
             }
             AppProgressBar(
                 percent = questionNumber * 100 / totalQuestions,
-                height = 8.dp,
+                height = Dimension.Size.progressLarge,
             )
             Text(
                 text = question.title,
                 color = tseletrackInk,
-                fontSize = 24.sp,
-                lineHeight = 30.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineMedium,
             )
             Text(
                 text = if (question.maxSelections == 1) {
@@ -221,8 +221,7 @@ internal fun CareerQuestionScreen(
                     stringResource(R.string.career_choose_up_to, question.maxSelections)
                 },
                 color = tseletrackMut,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
+                style = MaterialTheme.typography.bodyMedium,
             )
             question.options.forEach { option ->
                 CareerOptionCard(
@@ -254,7 +253,7 @@ internal fun CareerResultScreen(
             syncError?.let {
                 Text(
                     text = it,
-                    modifier = Modifier.padding(bottom = 10.dp),
+                    modifier = Modifier.padding(bottom = Dimension.Spacing.mediumLarge),
                     color = tseletrackRed,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
@@ -268,7 +267,7 @@ internal fun CareerResultScreen(
                 onClick = onSave,
                 loading = isSyncing,
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(Dimension.Spacing.mediumLarge))
             CareerSecondaryButton(
                 text = stringResource(R.string.career_restart),
                 onClick = onRestart,
@@ -278,16 +277,16 @@ internal fun CareerResultScreen(
         Column(
             modifier = contentModifier
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 22.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(horizontal = Dimension.Spacing.xxl, vertical = Dimension.Spacing.space22),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.large),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(tseletrackRedTint, RoundedCornerShape(18.dp))
-                    .padding(18.dp),
+                    .background(tseletrackRedTint, AppShapes.hero)
+                    .padding(Dimension.Spacing.space18),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium),
             ) {
                 LabelChip(
                     text = stringResource(R.string.career_your_profile),
@@ -304,8 +303,7 @@ internal fun CareerResultScreen(
                 Text(
                     text = primary.direction.profileDescription,
                     color = tseletrackMut,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -315,8 +313,8 @@ internal fun CareerResultScreen(
 
             SectionTitle(stringResource(R.string.career_strengths))
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium),
+                verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium),
             ) {
                 primary.direction.strengths.forEach { LabelChip(it) }
             }
@@ -344,7 +342,7 @@ internal fun CareerAuthGateScreen(
                 text = stringResource(R.string.career_login_action),
                 onClick = onLogin,
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(Dimension.Spacing.mediumLarge))
             CareerSecondaryButton(
                 text = stringResource(R.string.career_stay_guest),
                 onClick = onStayGuest,
@@ -354,9 +352,9 @@ internal fun CareerAuthGateScreen(
         Column(
             modifier = contentModifier
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 22.dp),
+                .padding(horizontal = Dimension.Spacing.xxl, vertical = Dimension.Spacing.space22),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.largeExtra),
         ) {
             HeroIcon(Icons.Default.AccountCircle, tseletrackInfoTint, tseletrackInfo)
             Text(
@@ -377,10 +375,10 @@ internal fun CareerAuthGateScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(tseletrackWhite, RoundedCornerShape(16.dp))
-                    .border(1.dp, tseletrackLine, RoundedCornerShape(16.dp))
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                    .background(tseletrackWhite, AppShapes.cardLarge)
+                    .border(Dimension.Size.stroke, tseletrackLine, AppShapes.cardLarge)
+                    .padding(Dimension.Padding.screen),
+                verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.large),
             ) {
                 BenefitRow(stringResource(R.string.career_benefit_sync))
                 BenefitRow(stringResource(R.string.career_benefit_recommendations))
@@ -410,7 +408,7 @@ internal fun CareerSyncedScreen(
                 text = stringResource(R.string.career_back_to_route),
                 onClick = onRoute,
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(Dimension.Spacing.mediumLarge))
             CareerSecondaryButton(
                 text = stringResource(R.string.career_view_recommendations),
                 onClick = onRecommendations,
@@ -420,9 +418,9 @@ internal fun CareerSyncedScreen(
         Column(
             modifier = contentModifier
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 22.dp),
+                .padding(horizontal = Dimension.Spacing.xxl, vertical = Dimension.Spacing.space22),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.largeExtra),
         ) {
             HeroIcon(Icons.Default.Check, tseletrackOkTint, tseletrackOk)
             Text(
@@ -444,10 +442,10 @@ internal fun CareerSyncedScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(tseletrackWhite, RoundedCornerShape(16.dp))
-                    .border(1.dp, tseletrackLine, RoundedCornerShape(16.dp))
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                    .background(tseletrackWhite, AppShapes.cardLarge)
+                    .border(Dimension.Size.stroke, tseletrackLine, AppShapes.cardLarge)
+                    .padding(Dimension.Padding.screen),
+                verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium),
             ) {
                 Text(
                     text = stringResource(R.string.career_your_profile),
@@ -469,16 +467,15 @@ internal fun CareerSyncedScreen(
                         primary.percent,
                     ),
                     color = tseletrackMut,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(tseletrackInfoTint, RoundedCornerShape(16.dp))
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                    .background(tseletrackInfoTint, AppShapes.cardLarge)
+                    .padding(Dimension.Padding.screen),
+                verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.small),
             ) {
                 Text(
                     text = stringResource(R.string.career_next_stage),
@@ -495,8 +492,7 @@ internal fun CareerSyncedScreen(
                 Text(
                     text = stringResource(R.string.career_university_choice_description),
                     color = tseletrackMut,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
         }
@@ -521,7 +517,7 @@ private fun CareerScaffold(
                     .fillMaxWidth()
                     .background(tseletrackBg)
                     .navigationBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                    .padding(horizontal = Dimension.Spacing.xxl, vertical = Dimension.Spacing.large),
             ) {
                 actions()
             }
@@ -543,7 +539,7 @@ private fun CareerHeader(title: String, onBack: () -> Unit) {
             .background(tseletrackWhite)
             .statusBarsPadding()
             .height(48.dp)
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = Dimension.Spacing.medium),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
@@ -579,7 +575,7 @@ private fun CareerPrimaryButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
-            .background(if (enabled) tseletrackRed else tseletrackLine, RoundedCornerShape(14.dp))
+            .background(if (enabled) tseletrackRed else tseletrackLine, MaterialTheme.shapes.extraLarge)
             .clickable(enabled = enabled && !loading, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -593,9 +589,7 @@ private fun CareerPrimaryButton(
             Text(
                 text = text,
                 color = if (enabled) tseletrackWhite else tseletrackMut,
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
             )
         }
     }
@@ -607,17 +601,15 @@ private fun CareerSecondaryButton(text: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
-            .background(tseletrackWhite, RoundedCornerShape(14.dp))
-            .border(1.dp, tseletrackRed, RoundedCornerShape(14.dp))
+            .background(tseletrackWhite, MaterialTheme.shapes.extraLarge)
+            .border(Dimension.Size.stroke, tseletrackRed, MaterialTheme.shapes.extraLarge)
             .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             color = tseletrackRed,
-            fontSize = 16.sp,
-            lineHeight = 22.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleMedium,
         )
     }
 }
@@ -665,7 +657,7 @@ private fun LabelChip(
     Box(
         modifier = Modifier
             .background(background, CircleShape)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+            .padding(horizontal = Dimension.Spacing.mediumLarge, vertical = Dimension.Spacing.space5),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -683,9 +675,9 @@ private fun InfoPanel(title: String, description: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(tseletrackInfoTint, RoundedCornerShape(14.dp))
-            .padding(14.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .background(tseletrackInfoTint, MaterialTheme.shapes.extraLarge)
+            .padding(Dimension.Spacing.largeExtra),
+        horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.large),
         verticalAlignment = Alignment.Top,
     ) {
         Icon(
@@ -693,19 +685,16 @@ private fun InfoPanel(title: String, description: String) {
             contentDescription = null,
             tint = tseletrackInfo,
         )
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.xxs)) {
             Text(
                 text = title,
                 color = tseletrackInk,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = AppTextStyles.bodyMediumStrong,
             )
             Text(
                 text = description,
                 color = tseletrackMut,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
+                style = AppTextStyles.bodyCompact,
             )
         }
     }
@@ -716,10 +705,10 @@ private fun SavedProgressCard(answeredCount: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(tseletrackWhite, RoundedCornerShape(16.dp))
-            .border(1.dp, tseletrackLine, RoundedCornerShape(16.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .background(tseletrackWhite, AppShapes.cardLarge)
+            .border(Dimension.Size.stroke, tseletrackLine, AppShapes.cardLarge)
+            .padding(Dimension.Padding.screen),
+        verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -739,7 +728,7 @@ private fun SavedProgressCard(answeredCount: Int) {
         }
         AppProgressBar(
             percent = answeredCount * 100 / CareerGuidanceContent.questions.size,
-            height = 8.dp,
+            height = Dimension.Size.progressLarge,
         )
     }
 }
@@ -755,13 +744,13 @@ private fun CareerOptionCard(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .background(if (selected) tseletrackRedTint else tseletrackWhite, RoundedCornerShape(14.dp))
-            .border(if (selected) 2.dp else 1.dp, if (selected) tseletrackRed else tseletrackLine, RoundedCornerShape(14.dp))
+            .background(if (selected) tseletrackRedTint else tseletrackWhite, MaterialTheme.shapes.extraLarge)
+            .border(if (selected) Dimension.Size.strokeSelected else Dimension.Size.stroke, if (selected) tseletrackRed else tseletrackLine, MaterialTheme.shapes.extraLarge)
             .clickable(
                 role = if (multiple) Role.Checkbox else Role.RadioButton,
                 onClick = onClick,
             )
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+            .padding(horizontal = Dimension.Spacing.medium, vertical = Dimension.Spacing.medium),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (multiple) {
@@ -784,7 +773,7 @@ private fun CareerOptionCard(
                 ),
             )
         }
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(Dimension.Spacing.xs))
         Text(
             text = title,
             modifier = Modifier.weight(1f),
@@ -802,9 +791,7 @@ private fun SectionTitle(text: String) {
         text = text,
         modifier = Modifier.fillMaxWidth(),
         color = tseletrackInk,
-        fontSize = 16.sp,
-        lineHeight = 22.sp,
-        fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.titleMedium,
     )
 }
 
@@ -813,10 +800,10 @@ private fun CareerMatchCard(match: CareerMatch) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(tseletrackWhite, RoundedCornerShape(14.dp))
-            .border(1.dp, tseletrackLine, RoundedCornerShape(14.dp))
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .background(tseletrackWhite, MaterialTheme.shapes.extraLarge)
+            .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.extraLarge)
+            .padding(Dimension.Spacing.largeExtra),
+        verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -827,11 +814,9 @@ private fun CareerMatchCard(match: CareerMatch) {
                 text = match.direction.title,
                 modifier = Modifier.weight(1f),
                 color = tseletrackInk,
-                fontSize = 15.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.Bold,
+                style = AppTextStyles.cardTitle,
             )
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(Dimension.Spacing.large))
             Text(
                 text = "${match.percent}%",
                 color = tseletrackRed,
@@ -842,9 +827,7 @@ private fun CareerMatchCard(match: CareerMatch) {
         Text(
             text = match.direction.institute,
             color = tseletrackInfo,
-            fontSize = 13.sp,
-            lineHeight = 18.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = AppTextStyles.bodyCompactStrong,
         )
         MatchList(
             title = stringResource(R.string.career_programs),
@@ -868,8 +851,7 @@ private fun MatchList(title: String, values: List<String>) {
     Text(
         text = values.joinToString(separator = "\n") { "• $it" },
         color = tseletrackMut,
-        fontSize = 12.sp,
-        lineHeight = 17.sp,
+        style = MaterialTheme.typography.bodySmall,
     )
 }
 
@@ -878,13 +860,13 @@ private fun TargetAdmissionNotice() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(tseletrackWarnTint, RoundedCornerShape(14.dp))
-            .padding(14.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .background(tseletrackWarnTint, MaterialTheme.shapes.extraLarge)
+            .padding(Dimension.Spacing.largeExtra),
+        horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.large),
         verticalAlignment = Alignment.Top,
     ) {
         Icon(Icons.Default.Info, contentDescription = null, tint = tseletrackWarn)
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.xs)) {
             Text(
                 text = stringResource(R.string.career_target_notice_title),
                 color = tseletrackInk,
@@ -894,14 +876,12 @@ private fun TargetAdmissionNotice() {
             Text(
                 text = stringResource(R.string.career_target_notice_description),
                 color = tseletrackMut,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
+                style = AppTextStyles.bodyCompact,
             )
             Text(
                 text = stringResource(R.string.career_target_customers),
                 color = tseletrackInk,
-                fontSize = 12.sp,
-                lineHeight = 17.sp,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
     }
@@ -911,7 +891,7 @@ private fun TargetAdmissionNotice() {
 private fun BenefitRow(text: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
     ) {
         Icon(
             imageVector = Icons.Default.Check,
@@ -922,9 +902,7 @@ private fun BenefitRow(text: String) {
         Text(
             text = text,
             color = tseletrackInk,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-            fontWeight = FontWeight.Medium,
+            style = AppTextStyles.bodyMediumEmphasis,
         )
     }
 }
@@ -934,13 +912,13 @@ private fun SuccessPanel() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(tseletrackOkTint, RoundedCornerShape(14.dp))
-            .padding(14.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .background(tseletrackOkTint, MaterialTheme.shapes.extraLarge)
+            .padding(Dimension.Spacing.largeExtra),
+        horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.large),
         verticalAlignment = Alignment.Top,
     ) {
         Icon(Icons.Default.Check, contentDescription = null, tint = tseletrackOk)
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.xxs)) {
             Text(
                 text = stringResource(R.string.career_stage_completed),
                 color = tseletrackOk,
@@ -950,8 +928,7 @@ private fun SuccessPanel() {
             Text(
                 text = stringResource(R.string.career_synced_description),
                 color = tseletrackInk,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
+                style = AppTextStyles.bodyCompact,
             )
         }
     }

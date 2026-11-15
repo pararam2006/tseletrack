@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,12 +42,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.pararam2006.tseletrack.ui.theme.AppShapes
+import com.pararam2006.tseletrack.ui.theme.AppTextStyles
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.ui.theme.tseletrackBg
 import com.pararam2006.tseletrack.ui.theme.tseletrackInk
 import com.pararam2006.tseletrack.ui.theme.tseletrackLine
@@ -81,16 +83,17 @@ internal fun AppScreenHeader(
             .fillMaxWidth()
             .background(tseletrackWhite)
             .statusBarsPadding()
-            .height(56.dp)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .height(Dimension.Size.header)
+            .padding(
+                horizontal = Dimension.Padding.screen,
+                vertical = Dimension.Spacing.mediumLarge,
+            ),
         contentAlignment = Alignment.BottomStart,
     ) {
         Text(
             text = title,
             color = tseletrackInk,
-            fontSize = 20.sp,
-            lineHeight = 25.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineSmall,
         )
     }
 }
@@ -120,17 +123,16 @@ internal fun AppErrorScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(24.dp),
+                .padding(Dimension.Spacing.xxxl),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = message,
                 color = tseletrackMut,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
+                style = MaterialTheme.typography.bodyMedium,
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(Dimension.Spacing.extraLarge))
             AppPrimaryButton(
                 text = "Повторить",
                 onClick = onRetry,
@@ -143,14 +145,14 @@ internal fun AppErrorScreen(
 @Composable
 internal fun AppCard(
     modifier: Modifier = Modifier,
-    contentPadding: Dp = 14.dp,
+    contentPadding: Dp = Dimension.Padding.card,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         color = tseletrackWhite,
-        border = BorderStroke(1.dp, tseletrackLine),
+        border = BorderStroke(Dimension.Size.stroke, tseletrackLine),
     ) {
         Column(
             modifier = Modifier.padding(contentPadding),
@@ -164,7 +166,7 @@ internal fun AppProgressBar(
     percent: Int,
     modifier: Modifier = Modifier,
     color: Color = tseletrackRed,
-    height: Dp = 6.dp,
+    height: Dp = Dimension.Size.progress,
 ) {
     Box(
         modifier = modifier
@@ -190,16 +192,15 @@ internal fun AppPrimaryButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(44.dp)
-            .background(tseletrackRed, RoundedCornerShape(10.dp))
+            .height(Dimension.Size.button)
+            .background(tseletrackRed, MaterialTheme.shapes.medium)
             .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             color = tseletrackWhite,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelLarge,
         )
     }
 }
@@ -212,17 +213,16 @@ internal fun AppOutlinedButton(
 ) {
     Box(
         modifier = modifier
-            .height(36.dp)
-            .border(1.dp, tseletrackLine, RoundedCornerShape(9.dp))
+            .height(Dimension.Size.outlinedButton)
+            .border(Dimension.Size.stroke, tseletrackLine, AppShapes.outlinedButton)
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = Dimension.Padding.buttonHorizontal),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             color = tseletrackInk,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
         )
     }
@@ -240,31 +240,27 @@ internal fun AppSearchField(
         onValueChange = onValueChange,
         modifier = modifier
             .fillMaxWidth()
-            .height(46.dp)
-            .background(tseletrackWhite, RoundedCornerShape(23.dp))
-            .border(1.dp, tseletrackLine, RoundedCornerShape(23.dp)),
-        textStyle = TextStyle(
-            color = tseletrackInk,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-        ),
+            .height(Dimension.Size.input)
+            .background(tseletrackWhite, AppShapes.pill)
+            .border(Dimension.Size.stroke, tseletrackLine, AppShapes.pill),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = tseletrackInk),
         cursorBrush = SolidColor(tseletrackRed),
         singleLine = true,
         decorationBox = { innerTextField ->
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = Dimension.Padding.screen),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 SearchIcon()
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(Dimension.Spacing.medium))
                 Box(modifier = Modifier.weight(1f)) {
                     if (value.isEmpty()) {
                         Text(
                             text = placeholder,
                             color = tseletrackMut,
-                            fontSize = 14.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                     innerTextField()
@@ -283,21 +279,20 @@ internal fun AppFilterChip(
 ) {
     Box(
         modifier = modifier
-            .height(30.dp)
+            .height(Dimension.Size.chip)
             .background(
                 color = if (isSelected) tseletrackInk else tseletrackWhite,
-                shape = RoundedCornerShape(16.dp),
+                shape = AppShapes.pill,
             )
-            .border(1.dp, tseletrackLine, RoundedCornerShape(16.dp))
+            .border(Dimension.Size.stroke, tseletrackLine, AppShapes.pill)
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 13.dp),
+            .padding(horizontal = Dimension.Spacing.space13),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             color = if (isSelected) tseletrackWhite else tseletrackInk,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
+            style = AppTextStyles.filterLabel,
             maxLines = 1,
         )
     }
@@ -311,21 +306,18 @@ internal fun AppMetricCard(
     valueColor: Color = tseletrackInk,
 ) {
     AppCard(
-        modifier = modifier.height(78.dp),
-        contentPadding = 12.dp,
+        modifier = modifier.height(Dimension.Size.metricCard),
+        contentPadding = Dimension.Spacing.large,
     ) {
         Text(
             text = value,
             color = valueColor,
-            fontSize = 18.sp,
-            lineHeight = 22.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleLarge,
         )
         Text(
             text = label,
             color = tseletrackMut,
-            fontSize = 10.sp,
-            lineHeight = 14.sp,
+            style = AppTextStyles.metricLabel,
         )
     }
 }
@@ -338,8 +330,8 @@ internal fun AppFloatingButton(
 ) {
     Box(
         modifier = modifier
-            .size(58.dp)
-            .background(tseletrackRed, RoundedCornerShape(17.dp))
+            .size(Dimension.Size.floatingButton)
+            .background(tseletrackRed, AppShapes.floatingButton)
             .semantics { this.contentDescription = contentDescription }
             .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -347,8 +339,7 @@ internal fun AppFloatingButton(
         Text(
             text = "+",
             color = tseletrackWhite,
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Light,
+            style = AppTextStyles.floatingAction,
         )
     }
 }
@@ -370,13 +361,13 @@ internal fun <T> AppBottomBar(
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = tseletrackWhite,
-        border = BorderStroke(1.dp, tseletrackLine),
+        border = BorderStroke(Dimension.Size.stroke, tseletrackLine),
     ) {
         Row(
             modifier = Modifier
                 .navigationBarsPadding()
-                .height(66.dp)
-                .padding(horizontal = 3.dp),
+                .height(Dimension.Size.bottomBar)
+                .padding(horizontal = Dimension.Spacing.space3),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             tabs.forEach { tab ->
@@ -386,16 +377,19 @@ internal fun <T> AppBottomBar(
                         .weight(1f)
                         .testTag(tab.testTag)
                         .clickable(role = Role.Tab) { onTabSelected(tab.value) }
-                        .padding(vertical = 5.dp),
+                        .padding(vertical = Dimension.Spacing.space5),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.xxs),
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(width = 50.dp, height = 27.dp)
+                            .size(
+                                width = Dimension.Size.navigationIndicatorWidth,
+                                height = Dimension.Size.navigationIndicatorHeight,
+                            )
                             .background(
                                 color = if (selected) tseletrackRedTint else Color.Transparent,
-                                shape = RoundedCornerShape(15.dp),
+                                shape = AppShapes.pill,
                             ),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -407,8 +401,7 @@ internal fun <T> AppBottomBar(
                     Text(
                         text = stringResource(tab.labelRes),
                         color = if (selected) tseletrackInk else tseletrackMut,
-                        fontSize = 10.sp,
-                        lineHeight = 13.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

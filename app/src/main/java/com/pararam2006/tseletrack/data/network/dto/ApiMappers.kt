@@ -39,33 +39,50 @@ internal fun UserDto.toRole(): Role = when (role.lowercase()) {
     else -> throw ApiException(ApiErrorKind.InvalidResponse, "Сервер вернул неизвестную роль: $role")
 }
 
-internal fun StudentDashboardDto.toDomain() = StudentDashboard(
-    routeProgressPercent = routeProgressPercent.coerceIn(0, 100),
-    routeStages = routeStages.map(RouteStageDto::toDomain),
-    universities = universities.map(UniversityDto::toDomain),
-    tasks = tasks.map(StudentTaskDto::toDomain),
-    profile = profile.toDomain(),
-)
+internal fun StudentDashboardDto.toDomain(): StudentDashboard {
+    val hasLegacyRetentionStage = routeStages.any { it.stageType.equals("retention", ignoreCase = true) }
+    val visibleStages = routeStages.mapNotNull(RouteStageDto::toDomainOrNull)
+    val visibleProgress = if (visibleStages.isEmpty()) {
+        0
+    } else {
+        visibleStages.count { it.status == RouteStageStatus.Completed } * 100 / visibleStages.size
+    }
 
-private fun RouteStageDto.toDomain() = RouteStage(
-    id = id.toString(),
-    type = when (stageType.lowercase()) {
-        "career_guidance" -> RouteStageType.CareerGuidance
-        "university_choice" -> RouteStageType.TargetOfferChoice
-        "contract" -> RouteStageType.Contract
-        "education" -> RouteStageType.Education
-        "employment" -> RouteStageType.Employment
-        "retention" -> RouteStageType.Retention
-        else -> RouteStageType.Other
-    },
-    title = title,
-    status = when (status.lowercase()) {
-        "completed" -> RouteStageStatus.Completed
-        "current", "in_progress" -> RouteStageStatus.Current
-        "waiting" -> RouteStageStatus.Waiting
-        else -> RouteStageStatus.Future
-    },
-)
+    return StudentDashboard(
+        routeProgressPercent = if (hasLegacyRetentionStage) {
+            visibleProgress
+        } else {
+            routeProgressPercent.coerceIn(0, 100)
+        },
+        routeStages = visibleStages,
+        universities = universities.map(UniversityDto::toDomain),
+        tasks = tasks.map(StudentTaskDto::toDomain),
+        profile = profile.toDomain(),
+    )
+}
+
+private fun RouteStageDto.toDomainOrNull(): RouteStage? {
+    if (stageType.equals("retention", ignoreCase = true)) return null
+
+    return RouteStage(
+        id = id.toString(),
+        type = when (stageType.lowercase()) {
+            "career_guidance" -> RouteStageType.CareerGuidance
+            "university_choice" -> RouteStageType.TargetOfferChoice
+            "contract" -> RouteStageType.Contract
+            "education" -> RouteStageType.Education
+            "employment" -> RouteStageType.Employment
+            else -> RouteStageType.Other
+        },
+        title = title,
+        status = when (status.lowercase()) {
+            "completed" -> RouteStageStatus.Completed
+            "current", "in_progress" -> RouteStageStatus.Current
+            "waiting" -> RouteStageStatus.Waiting
+            else -> RouteStageStatus.Future
+        },
+    )
+}
 
 private fun UniversityDto.toDomain() = University(
     id = id.toString(),

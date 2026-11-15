@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,6 +24,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pararam2006.tseletrack.ui.theme.AppShapes
+import com.pararam2006.tseletrack.ui.theme.AppTextStyles
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.domain.student.StudentTask
 import com.pararam2006.tseletrack.ui.common.AppCard
@@ -32,7 +34,6 @@ import com.pararam2006.tseletrack.ui.common.AppLoadingScreen
 import com.pararam2006.tseletrack.ui.common.AppScreenHeader
 import com.pararam2006.tseletrack.ui.theme.tseletrackBg
 import com.pararam2006.tseletrack.ui.theme.tseletrackInk
-import com.pararam2006.tseletrack.ui.theme.tseletrackLine
 import com.pararam2006.tseletrack.ui.theme.tseletrackMut
 import com.pararam2006.tseletrack.ui.theme.tseletrackOk
 import com.pararam2006.tseletrack.ui.theme.tseletrackRed
@@ -58,8 +59,8 @@ internal fun TasksScreen(
         AppScreenHeader(title = stringResource(R.string.tasks_title))
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                modifier = Modifier.padding(Dimension.Padding.screen),
+                verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.largeExtra),
             ) {
                 tasks.forEach { task ->
                     TaskCard(
@@ -72,7 +73,7 @@ internal fun TasksScreen(
                 onClick = onAddTask,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp),
+                    .padding(Dimension.Padding.screen),
             )
         }
     }
@@ -92,19 +93,17 @@ private fun TaskCard(
                 role = Role.Checkbox,
                 onValueChange = { onClick() },
             ),
-        contentPadding = 14.dp,
+        contentPadding = Dimension.Padding.card,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.largeExtra),
         ) {
             TaskCheckbox(isChecked = task.isCompleted)
             Text(
                 text = task.title,
                 color = if (task.isCompleted) tseletrackMut else tseletrackInk,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
-                fontWeight = FontWeight.Medium,
+                style = AppTextStyles.bodyCompactEmphasis,
                 maxLines = 2,
             )
         }
@@ -118,9 +117,9 @@ private fun TaskCheckbox(isChecked: Boolean) {
             .size(22.dp)
             .then(
                 if (isChecked) {
-                    Modifier.background(tseletrackOk, RoundedCornerShape(5.dp))
+                    Modifier.background(tseletrackOk, AppShapes.taskMarker)
                 } else {
-                    Modifier.border(1.dp, tseletrackMut, RoundedCornerShape(5.dp))
+                    Modifier.border(Dimension.Size.stroke, tseletrackMut, AppShapes.taskMarker)
                 },
             ),
         contentAlignment = Alignment.Center,
@@ -145,7 +144,7 @@ private fun AddTaskButton(
     Box(
         modifier = modifier
             .size(58.dp)
-            .background(tseletrackRed, RoundedCornerShape(17.dp))
+            .background(tseletrackRed, AppShapes.floatingButton)
             .semantics { contentDescription = label }
             .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,

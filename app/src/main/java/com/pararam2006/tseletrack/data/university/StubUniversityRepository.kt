@@ -22,7 +22,7 @@ class StubUniversityRepository : UniversityRepository {
             UniversityStudentItem("b", "Студент Б.", "Обучение", 48),
             UniversityStudentItem("v", "Студент В.", "Трудоустройство", 83),
             UniversityStudentItem("g", "Студент Г.", "Выбор вуза", 17),
-            UniversityStudentItem("d", "Студент Д.", "Удержание", 100),
+            UniversityStudentItem("d", "Студент Д.", "Трудоустроен", 100),
             UniversityStudentItem("e", "Студент Е.", "Обучение", 48),
         ),
         analytics = defaultAnalytics(),

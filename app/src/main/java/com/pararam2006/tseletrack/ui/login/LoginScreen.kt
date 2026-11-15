@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -29,7 +28,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,10 +36,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pararam2006.tseletrack.ui.theme.AppShapes
+import com.pararam2006.tseletrack.ui.theme.AppTextStyles
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.core.Role
 import com.pararam2006.tseletrack.ui.theme.TseletrackTheme
@@ -75,14 +77,14 @@ fun LoginScreen(
             .statusBarsPadding()
             .imePadding()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = Dimension.Spacing.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(96.dp))
+        Spacer(modifier = Modifier.height(Dimension.Layout.loginLogoTop))
 
         BrandMark()
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(Dimension.Spacing.huge))
 
         Text(
             text = stringResource(R.string.login_title),
@@ -100,7 +102,7 @@ fun LoginScreen(
             fontWeight = FontWeight.Normal,
         )
 
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(Dimension.Layout.loginFormTop))
 
         LoginTextField(
             value = state.email,
@@ -115,7 +117,7 @@ fun LoginScreen(
             ),
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(Dimension.Spacing.large))
 
         LoginTextField(
             value = state.password,
@@ -132,7 +134,7 @@ fun LoginScreen(
         )
 
         state.errorMessage?.let { message ->
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(Dimension.Spacing.mediumLarge))
             Text(
                 text = message,
                 modifier = Modifier.fillMaxWidth(),
@@ -142,13 +144,13 @@ fun LoginScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(Dimension.Spacing.xxxl))
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(MaterialTheme.shapes.large)
                 .background(tseletrackRed)
                 .clickable {
                     focusManager.clearFocus()
@@ -159,48 +161,44 @@ fun LoginScreen(
             Text(
                 text = stringResource(R.string.login_action),
                 color = tseletrackWhite,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = AppTextStyles.bodyMediumStrong,
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(Dimension.Spacing.xxl))
 
         Text(
             text = stringResource(R.string.login_registration),
             modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
+                .clip(AppShapes.checkbox)
                 .clickable(onClick = onRegistrationClick)
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .padding(horizontal = Dimension.Spacing.medium, vertical = Dimension.Spacing.xs),
             color = tseletrackRed,
             fontSize = 12.sp,
             lineHeight = 16.sp,
             fontWeight = FontWeight.SemiBold,
         )
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(Dimension.Spacing.largeExtra))
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(MaterialTheme.shapes.large)
                 .background(tseletrackWhite)
-                .border(1.dp, tseletrackRed, RoundedCornerShape(12.dp))
+                .border(Dimension.Size.stroke, tseletrackRed, MaterialTheme.shapes.large)
                 .clickable(onClick = onCareerGuidanceClick),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = stringResource(R.string.login_career_guidance),
                 color = tseletrackRed,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = AppTextStyles.bodyCompactStrong,
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(Dimension.Spacing.xxl))
     }
 }
 
@@ -209,7 +207,7 @@ private fun BrandMark() {
     Box(
         modifier = Modifier
             .size(100.dp)
-            .clip(RoundedCornerShape(22.dp))
+            .clip(AppShapes.logo)
             .background(tseletrackRed),
         contentAlignment = Alignment.Center,
     ) {
@@ -256,12 +254,7 @@ private fun LoginTextField(
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp),
-        textStyle = TextStyle(
-            color = tseletrackInk,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-            fontWeight = FontWeight.Normal,
-        ),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = tseletrackInk),
         singleLine = true,
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
@@ -271,18 +264,17 @@ private fun LoginTextField(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(MaterialTheme.shapes.large)
                     .background(tseletrackWhite)
-                    .border(1.dp, tseletrackLine, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp),
+                    .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.large)
+                    .padding(horizontal = Dimension.Spacing.extraLarge),
                 contentAlignment = Alignment.CenterStart,
             ) {
                 if (value.isEmpty()) {
                     Text(
                         text = placeholder,
                         color = tseletrackMut,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Normal,
                     )
                 }

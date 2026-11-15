@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pararam2006.tseletrack.ui.theme.AppShapes
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.domain.role.CandidateItem
 import com.pararam2006.tseletrack.domain.role.CandidateStatus
 import com.pararam2006.tseletrack.ui.common.AppCard
@@ -49,13 +50,13 @@ internal fun CompanyCandidatesScreen(
     AppScreen(title = "Кандидаты") {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(Dimension.Padding.screen),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
         ) {
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.small),
                 ) {
                     CandidateFilter.entries.forEach { filter ->
                         AppFilterChip(
@@ -99,7 +100,7 @@ private fun CandidateCard(
                     fontWeight = FontWeight.SemiBold,
                 )
             }
-            Column(modifier = Modifier.padding(start = 12.dp)) {
+            Column(modifier = Modifier.padding(start = Dimension.Spacing.large)) {
                 Text(
                     text = candidate.name,
                     color = tseletrackInk,
@@ -113,22 +114,22 @@ private fun CandidateCard(
                 )
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Dimension.Spacing.large))
         AppProgressBar(percent = candidate.progressPercent)
-        Spacer(Modifier.height(7.dp))
+        Spacer(Modifier.height(Dimension.Spacing.space7))
         Text(
             text = "Прогресс ${candidate.progressPercent}%",
             color = tseletrackMut,
             fontSize = 10.sp,
         )
-        Spacer(Modifier.height(9.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Spacer(Modifier.height(Dimension.Spacing.space9))
+        Row(horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge)) {
             if (candidate.status == CandidateStatus.Completed) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .height(36.dp)
-                        .background(tseletrackOkTint, RoundedCornerShape(9.dp)),
+                        .background(tseletrackOkTint, AppShapes.outlinedButton),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(

@@ -6,6 +6,7 @@ import com.pararam2006.tseletrack.domain.role.CandidateStatus
 import com.pararam2006.tseletrack.domain.student.RouteStageStatus
 import com.pararam2006.tseletrack.domain.student.AdmissionSourceKind
 import com.pararam2006.tseletrack.domain.student.AdmissionState
+import com.pararam2006.tseletrack.domain.student.RouteStageType
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -68,6 +69,40 @@ class ApiMappersTest {
         )
         assertEquals("4", dashboard.universities.single().id)
         assertEquals(true, dashboard.tasks.single().isCompleted)
+    }
+
+    @Test
+    fun `legacy retention stage is excluded from student route and progress`() {
+        val dto = json.decodeFromString<StudentDashboardDto>(
+            """
+            {
+              "route_id": 3,
+              "route_progress_percent": 33,
+              "route_stages": [
+                {"id": 1, "stage_type": "career_guidance", "title": "Профориентация", "status": "completed"},
+                {"id": 2, "stage_type": "university_choice", "title": "Поступление", "status": "completed"},
+                {"id": 3, "stage_type": "contract", "title": "Договор", "status": "current"},
+                {"id": 4, "stage_type": "education", "title": "Обучение", "status": "waiting"},
+                {"id": 5, "stage_type": "employment", "title": "Трудоустройство", "status": "future"},
+                {"id": 6, "stage_type": "retention", "title": "Удержание", "status": "future"}
+              ],
+              "universities": [],
+              "tasks": [],
+              "profile": {
+                "display_name": "Иван",
+                "avatar_letter": "И",
+                "role": "Студент",
+                "document_count": 0
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val dashboard = dto.toDomain()
+
+        assertEquals(40, dashboard.routeProgressPercent)
+        assertEquals(5, dashboard.routeStages.size)
+        assertEquals(RouteStageType.Employment, dashboard.routeStages.last().type)
     }
 
     @Test

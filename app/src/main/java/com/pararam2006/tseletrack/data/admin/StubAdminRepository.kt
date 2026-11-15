@@ -19,7 +19,6 @@ class StubAdminRepository : AdminRepository {
             StageMetric("Договор", 64),
             StageMetric("Обучение", 50),
             StageMetric("Трудоустройство", 38),
-            StageMetric("Удержание", 24),
         ),
         users = listOf(
             AdminUser("anna", "Анна Смирнова", "anna@mail.ru", "А", "Студент"),

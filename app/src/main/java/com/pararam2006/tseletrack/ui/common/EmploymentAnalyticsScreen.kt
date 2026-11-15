@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.domain.role.AnalyticsDashboard
 import com.pararam2006.tseletrack.ui.theme.tseletrackInk
 import com.pararam2006.tseletrack.ui.theme.tseletrackLine
@@ -42,12 +43,12 @@ internal fun EmploymentAnalyticsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(Dimension.Padding.screen),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.large),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.large),
             ) {
                 AppMetricCard(
                     value = analytics.candidates.toString(),
@@ -63,7 +64,7 @@ internal fun EmploymentAnalyticsScreen(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.large),
             ) {
                 AppMetricCard(
                     value = analytics.inEducation.toString(),
@@ -125,7 +126,7 @@ internal fun EmploymentAnalyticsScreen(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                 )
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(Dimension.Spacing.largeExtra))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -187,7 +188,7 @@ private fun UniversityBar(
                 .height((104f * fraction.coerceIn(0.15f, 1f)).dp)
                 .background(tseletrackRed, RoundedCornerShape(topStart = 7.dp, topEnd = 7.dp)),
         )
-        Spacer(Modifier.height(7.dp))
+        Spacer(Modifier.height(Dimension.Spacing.space7))
         Text(
             text = name,
             color = tseletrackMut,

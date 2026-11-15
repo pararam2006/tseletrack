@@ -18,12 +18,12 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -49,6 +48,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pararam2006.tseletrack.ui.theme.AppShapes
+import com.pararam2006.tseletrack.ui.theme.AppTextStyles
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.core.Role as UserRole
 import com.pararam2006.tseletrack.ui.theme.tseletrackBg
@@ -141,7 +143,7 @@ private fun RegistrationTopBar(
             .background(tseletrackWhite)
             .statusBarsPadding()
             .height(64.dp)
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = Dimension.Spacing.xxl),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
@@ -162,7 +164,7 @@ private fun RegistrationTopBar(
                 modifier = Modifier.size(16.dp),
             )
         }
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(Dimension.Spacing.medium))
         Text(
             text = title,
             color = tseletrackInk,
@@ -183,33 +185,33 @@ private fun StudentRegistrationForm(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = Dimension.Spacing.xxl),
     ) {
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(Dimension.Spacing.extraLarge))
         AccountTypePrompt(
             selectedType = state.accountType,
             onClick = { viewModel.setAccountTypeMenuOpen(true) },
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(Dimension.Spacing.extraLarge))
         RegistrationTextField(
             value = state.fullName,
             onValueChange = viewModel::updateFullName,
             placeholder = stringResource(R.string.registration_full_name),
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Dimension.Spacing.medium))
         RegistrationTextField(
             value = state.email,
             onValueChange = viewModel::updateEmail,
             placeholder = stringResource(R.string.login_email),
             keyboardType = KeyboardType.Email,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Dimension.Spacing.medium))
         RegistrationPasswordField(
             value = state.password,
             onValueChange = viewModel::updatePassword,
             placeholder = stringResource(R.string.login_password),
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Dimension.Spacing.medium))
         RegistrationTextField(
             value = state.repeatedPassword,
             onValueChange = viewModel::updateRepeatedPassword,
@@ -217,22 +219,22 @@ private fun StudentRegistrationForm(
             keyboardType = KeyboardType.Password,
             visualTransformation = PasswordVisualTransformation(),
         )
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(Dimension.Spacing.space18))
         RegistrationAgreement(
             checked = state.acceptsPersonalData,
             text = stringResource(R.string.registration_personal_data_agreement),
             onClick = viewModel::togglePersonalDataAgreement,
         )
         RegistrationError(state.errorMessage)
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(Dimension.Spacing.largeExtra))
         RegistrationPrimaryButton(
             text = stringResource(R.string.registration_submit),
             onClick = viewModel::submit,
             isLoading = state.isSubmitting,
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Dimension.Spacing.large))
         LoginLink(onClick = onLoginClick)
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(Dimension.Spacing.xxxl))
     }
 }
 
@@ -246,39 +248,39 @@ private fun OrganizationRequestForm(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = Dimension.Spacing.xxl),
     ) {
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(Dimension.Spacing.largeExtra))
         AccountTypePrompt(
             selectedType = state.accountType,
             onClick = { viewModel.setAccountTypeMenuOpen(true) },
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Dimension.Spacing.large))
         Text(
             text = stringResource(R.string.registration_request_info),
             modifier = Modifier
                 .fillMaxWidth()
-                .background(tseletrackInfoTint, RoundedCornerShape(12.dp))
-                .padding(horizontal = 14.dp, vertical = 8.dp),
+                .background(tseletrackInfoTint, MaterialTheme.shapes.large)
+                .padding(horizontal = Dimension.Spacing.largeExtra, vertical = Dimension.Spacing.medium),
             color = tseletrackInk,
             fontSize = 11.sp,
             lineHeight = 16.sp,
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Dimension.Spacing.large))
         RegistrationTextField(
             value = state.contactName,
             onValueChange = viewModel::updateContactName,
             placeholder = stringResource(R.string.registration_contact_name),
             height = 44.dp,
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Dimension.Spacing.xs))
         RegistrationTextField(
             value = state.organizationName,
             onValueChange = viewModel::updateOrganizationName,
             placeholder = stringResource(R.string.registration_organization),
             height = 44.dp,
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Dimension.Spacing.xs))
         RegistrationTextField(
             value = state.organizationEmail,
             onValueChange = viewModel::updateOrganizationEmail,
@@ -286,7 +288,7 @@ private fun OrganizationRequestForm(
             keyboardType = KeyboardType.Email,
             height = 44.dp,
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Dimension.Spacing.xs))
         RegistrationTextField(
             value = state.phone,
             onValueChange = viewModel::updatePhone,
@@ -294,7 +296,7 @@ private fun OrganizationRequestForm(
             keyboardType = KeyboardType.Phone,
             height = 44.dp,
         )
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(Dimension.Spacing.small))
         Text(
             text = stringResource(R.string.registration_platform_role),
             color = tseletrackInk,
@@ -302,12 +304,12 @@ private fun OrganizationRequestForm(
             lineHeight = 16.sp,
             fontWeight = FontWeight.Medium,
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Dimension.Spacing.xs))
         OrganizationRoleSelector(
             selectedRole = state.organizationRole,
             onRoleSelected = viewModel::selectOrganizationRole,
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Dimension.Spacing.large))
         RegistrationTextField(
             value = state.requestPurpose,
             onValueChange = viewModel::updateRequestPurpose,
@@ -315,13 +317,13 @@ private fun OrganizationRequestForm(
             height = 72.dp,
             singleLine = false,
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(Dimension.Spacing.mediumLarge))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(40.dp)
-                .background(tseletrackWhite, RoundedCornerShape(10.dp))
-                .border(1.dp, tseletrackLine, RoundedCornerShape(10.dp))
+                .background(tseletrackWhite, MaterialTheme.shapes.medium)
+                .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.medium)
                 .clickable(role = Role.Button, onClick = viewModel::toggleDocumentAttachment),
             contentAlignment = Alignment.Center,
         ) {
@@ -339,22 +341,22 @@ private fun OrganizationRequestForm(
                 fontWeight = FontWeight.Medium,
             )
         }
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(Dimension.Spacing.largeExtra))
         RegistrationAgreement(
             checked = state.acceptsOrganizationData,
             text = stringResource(R.string.registration_organization_data_agreement),
             onClick = viewModel::toggleOrganizationDataAgreement,
         )
         RegistrationError(state.errorMessage)
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(Dimension.Spacing.largeExtra))
         RegistrationPrimaryButton(
             text = stringResource(R.string.registration_send_request),
             onClick = viewModel::submit,
             isLoading = false,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Dimension.Spacing.medium))
         LoginLink(onClick = onLoginClick)
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(Dimension.Spacing.xxxl))
     }
 }
 
@@ -370,7 +372,7 @@ private fun AccountTypePrompt(
         lineHeight = 18.sp,
         fontWeight = FontWeight.Medium,
     )
-    Spacer(Modifier.height(5.dp))
+    Spacer(Modifier.height(Dimension.Spacing.space5))
     AccountTypeField(
         accountType = selectedType,
         onClick = onClick,
@@ -386,14 +388,14 @@ private fun AccountTypeField(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(tseletrackWhite, RoundedCornerShape(12.dp))
-            .border(1.dp, tseletrackLine, RoundedCornerShape(12.dp))
+            .background(tseletrackWhite, MaterialTheme.shapes.large)
+            .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.large)
             .clickable(
                 role = Role.Button,
                 onClickLabel = stringResource(R.string.registration_account_type_description),
                 onClick = onClick,
             )
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = Dimension.Spacing.extraLarge),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -412,9 +414,7 @@ private fun AccountTypeField(
                     },
                 ),
                 color = tseletrackInk,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.Medium,
+                style = AppTextStyles.bodyMediumEmphasis,
             )
         }
         Icon(
@@ -442,19 +442,19 @@ private fun AccountTypeMenuOverlay(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = Dimension.Spacing.xxl, vertical = Dimension.Spacing.extraLarge),
         ) {
             AccountTypePrompt(
                 selectedType = selectedType,
                 onClick = onDismiss,
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(Dimension.Spacing.medium))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(tseletrackWhite, RoundedCornerShape(12.dp))
-                    .border(1.dp, tseletrackLine, RoundedCornerShape(12.dp))
-                    .padding(8.dp),
+                    .background(tseletrackWhite, MaterialTheme.shapes.large)
+                    .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.large)
+                    .padding(Dimension.Spacing.medium),
             ) {
                 AccountTypeMenuItem(
                     title = stringResource(R.string.registration_account_student),
@@ -486,19 +486,17 @@ private fun AccountTypeMenuItem(
             .height(64.dp)
             .background(
                 color = if (selected) tseletrackRedTint else Color.Transparent,
-                shape = RoundedCornerShape(9.dp),
+                shape = AppShapes.outlinedButton,
             )
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = Dimension.Spacing.extraLarge),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 color = tseletrackInk,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.Medium,
+                style = AppTextStyles.bodyMediumEmphasis,
             )
             Text(
                 text = subtitle,
@@ -581,11 +579,7 @@ private fun RegistrationTextField(
         modifier = modifier
             .fillMaxWidth()
             .height(height),
-        textStyle = TextStyle(
-            color = tseletrackInk,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-        ),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = tseletrackInk),
         cursorBrush = SolidColor(tseletrackRed),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = singleLine,
@@ -594,22 +588,21 @@ private fun RegistrationTextField(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(tseletrackWhite, RoundedCornerShape(12.dp))
-                    .border(1.dp, tseletrackLine, RoundedCornerShape(12.dp))
-                    .padding(start = 16.dp, end = if (trailingContent == null) 16.dp else 8.dp),
+                    .background(tseletrackWhite, MaterialTheme.shapes.large)
+                    .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.large)
+                    .padding(start = Dimension.Spacing.extraLarge, end = if (trailingContent == null) Dimension.Spacing.extraLarge else Dimension.Spacing.medium),
                 verticalAlignment = if (singleLine) Alignment.CenterVertically else Alignment.Top,
             ) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .then(if (singleLine) Modifier else Modifier.padding(top = 10.dp)),
+                        .then(if (singleLine) Modifier else Modifier.padding(top = Dimension.Spacing.mediumLarge)),
                 ) {
                     if (value.isEmpty()) {
                         Text(
                             text = placeholder,
                             color = tseletrackMut,
-                            fontSize = 14.sp,
-                            lineHeight = 20.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                     innerTextField()
@@ -635,9 +628,9 @@ private fun RegistrationAgreement(
                 .size(20.dp)
                 .background(
                     color = if (checked) tseletrackRed else tseletrackWhite,
-                    shape = RoundedCornerShape(6.dp),
+                    shape = MaterialTheme.shapes.extraSmall,
                 )
-                .border(2.dp, tseletrackRed, RoundedCornerShape(6.dp)),
+                .border(Dimension.Size.strokeSelected, tseletrackRed, MaterialTheme.shapes.extraSmall),
             contentAlignment = Alignment.Center,
         ) {
             if (checked) {
@@ -649,7 +642,7 @@ private fun RegistrationAgreement(
                 )
             }
         }
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(Dimension.Spacing.mediumLarge))
         Text(
             text = text,
             color = tseletrackInk,
@@ -662,7 +655,7 @@ private fun RegistrationAgreement(
 @Composable
 private fun RegistrationError(message: String?) {
     if (message == null) return
-    Spacer(Modifier.height(10.dp))
+    Spacer(Modifier.height(Dimension.Spacing.mediumLarge))
     Text(
         text = message,
         modifier = Modifier.fillMaxWidth(),
@@ -682,7 +675,7 @@ private fun RegistrationPrimaryButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
-            .background(tseletrackRed, RoundedCornerShape(12.dp))
+            .background(tseletrackRed, MaterialTheme.shapes.large)
             .clickable(enabled = !isLoading, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -696,9 +689,7 @@ private fun RegistrationPrimaryButton(
             Text(
                 text = text,
                 color = tseletrackWhite,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = AppTextStyles.bodyMediumStrong,
             )
         }
     }
@@ -711,7 +702,7 @@ private fun LoginLink(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 4.dp),
+            .padding(vertical = Dimension.Spacing.xs),
         color = tseletrackRed,
         fontSize = 12.sp,
         lineHeight = 19.sp,
@@ -725,7 +716,7 @@ private fun OrganizationRoleSelector(
     selectedRole: OrganizationRole,
     onRoleSelected: (OrganizationRole) -> Unit,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium)) {
         OrganizationRoleChip(
             text = stringResource(R.string.registration_role_company),
             selected = selectedRole == OrganizationRole.Company,
@@ -766,12 +757,12 @@ private fun OrganizationRoleChip(
             .height(30.dp)
             .background(
                 color = if (selected) tseletrackRedTint else tseletrackWhite,
-                shape = RoundedCornerShape(15.dp),
+                shape = AppShapes.pill,
             )
             .border(
                 width = 1.dp,
                 color = if (selected) tseletrackRed else tseletrackLine,
-                shape = RoundedCornerShape(15.dp),
+                shape = AppShapes.pill,
             )
             .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
@@ -798,10 +789,10 @@ private fun RequestSentContent(
             .fillMaxSize()
             .background(tseletrackBg)
             .statusBarsPadding()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = Dimension.Spacing.extraLarge),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(Modifier.height(88.dp))
+        Spacer(Modifier.height(Dimension.Layout.registrationResultTop))
         Box(
             modifier = Modifier
                 .size(96.dp)
@@ -815,7 +806,7 @@ private fun RequestSentContent(
                 modifier = Modifier.size(width = 46.dp, height = 32.dp),
             )
         }
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(Dimension.Spacing.space18))
         Text(
             text = stringResource(R.string.registration_sent_title),
             color = tseletrackInk,
@@ -830,14 +821,14 @@ private fun RequestSentContent(
             lineHeight = 19.sp,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(23.dp))
+        Spacer(Modifier.height(Dimension.Layout.registrationResultContent))
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(tseletrackWhite, RoundedCornerShape(14.dp))
-                .border(1.dp, tseletrackLine, RoundedCornerShape(14.dp))
-                .padding(horizontal = 18.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+                .background(tseletrackWhite, MaterialTheme.shapes.extraLarge)
+                .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.extraLarge)
+                .padding(horizontal = Dimension.Spacing.space18, vertical = Dimension.Spacing.xxl),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.xxl),
         ) {
             RequestStatusRow(
                 title = stringResource(R.string.registration_sent_title),
@@ -864,12 +855,12 @@ private fun RequestSentContent(
             onClick = onLoginClick,
             isLoading = false,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Dimension.Spacing.medium))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .background(tseletrackWhite, RoundedCornerShape(12.dp))
+                .background(tseletrackWhite, MaterialTheme.shapes.large)
                 .clickable(role = Role.Button, onClick = onEditClick),
             contentAlignment = Alignment.Center,
         ) {
@@ -880,7 +871,7 @@ private fun RequestSentContent(
                 fontWeight = FontWeight.SemiBold,
             )
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(Dimension.Spacing.xxxl))
     }
 }
 
@@ -904,7 +895,7 @@ private fun RequestStatusRow(
                     .background(dotColor, CircleShape),
             )
         }
-        Spacer(Modifier.width(14.dp))
+        Spacer(Modifier.width(Dimension.Spacing.largeExtra))
         Column {
             Text(
                 text = title,

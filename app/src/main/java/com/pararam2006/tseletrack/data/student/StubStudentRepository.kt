@@ -16,14 +16,13 @@ import com.pararam2006.tseletrack.domain.student.TargetOfferSelection
 /** Temporary in-memory data source. Replace its methods with API calls when the backend is ready. */
 class StubStudentRepository : StudentRepository {
     override suspend fun loadDashboard(): StudentDashboard = StudentDashboard(
-        routeProgressPercent = 33,
+        routeProgressPercent = 40,
         routeStages = listOf(
             RouteStage("career-guidance", RouteStageType.CareerGuidance, "Профориентация", RouteStageStatus.Completed),
             RouteStage("target-offer", RouteStageType.TargetOfferChoice, "Выбор целевого предложения", RouteStageStatus.Completed),
             RouteStage("contract", RouteStageType.Contract, "Заключение договора", RouteStageStatus.Current),
             RouteStage("education", RouteStageType.Education, "Обучение", RouteStageStatus.Waiting),
             RouteStage("employment", RouteStageType.Employment, "Трудоустройство", RouteStageStatus.Future),
-            RouteStage("retention", RouteStageType.Retention, "Удержание", RouteStageStatus.Future),
         ),
         universities = listOf(
             University("tulsu", "ТулГУ", "Информатика, инженерия", 92),

@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.domain.role.AdminDashboard
 import com.pararam2006.tseletrack.domain.role.AdminUser
 import com.pararam2006.tseletrack.domain.role.SystemEvent
@@ -57,12 +58,12 @@ internal fun AdminOverviewScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(Dimension.Padding.screen),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
             ) {
                 AppMetricCard(
                     value = dashboard.userCount.toString(),
@@ -77,7 +78,7 @@ internal fun AdminOverviewScreen(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
             ) {
                 AppMetricCard(
                     value = dashboard.contractsWaiting.toString(),
@@ -104,9 +105,9 @@ internal fun AdminOverviewScreen(
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
-                    Spacer(Modifier.height(4.dp))
-                    AppProgressBar(percent = stage.percent, height = 5.dp)
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(Dimension.Spacing.xs))
+                    AppProgressBar(percent = stage.percent, height = Dimension.Size.progressCompact)
+                    Spacer(Modifier.height(Dimension.Spacing.mediumLarge))
                 }
             }
             AppPrimaryButton(text = "Пользователи", onClick = onUsersClick)
@@ -114,7 +115,7 @@ internal fun AdminOverviewScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(42.dp)
-                    .background(Color.White, RoundedCornerShape(10.dp))
+                    .background(Color.White, MaterialTheme.shapes.medium)
                     .clickable(role = Role.Button, onClick = onExportClick),
                 contentAlignment = Alignment.Center,
             ) {
@@ -140,8 +141,8 @@ internal fun AdminUsersScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(9.dp),
+                contentPadding = PaddingValues(Dimension.Padding.screen),
+                verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.space9),
             ) {
                 item {
                     AppSearchField(
@@ -153,14 +154,14 @@ internal fun AdminUsersScreen(
                 items(users, key = AdminUser::id) { user ->
                     AdminUserCard(user)
                 }
-                item { Spacer(Modifier.height(56.dp)) }
+                item { Spacer(Modifier.height(Dimension.Size.header)) }
             }
             AppFloatingButton(
                 contentDescription = "Добавить пользователя",
                 onClick = onAddUser,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp),
+                    .padding(Dimension.Padding.screen),
             )
         }
     }
@@ -171,7 +172,7 @@ private fun AdminUserCard(user: AdminUser) {
     val (background, foreground) = roleColors(user.role)
     AppCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = 12.dp,
+        contentPadding = Dimension.Spacing.large,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -193,7 +194,7 @@ private fun AdminUserCard(user: AdminUser) {
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = Dimension.Spacing.large),
             ) {
                 Text(
                     text = user.name,
@@ -210,8 +211,8 @@ private fun AdminUserCard(user: AdminUser) {
             Text(
                 text = user.role,
                 modifier = Modifier
-                    .background(background, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 9.dp, vertical = 3.dp),
+                    .background(background, MaterialTheme.shapes.large)
+                    .padding(horizontal = Dimension.Spacing.space9, vertical = Dimension.Spacing.space3),
                 color = foreground,
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Medium,
@@ -232,14 +233,14 @@ internal fun AdminDataScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(Dimension.Padding.screen),
         ) {
             DataActionRow("Экспорт данных (JSON)", onExportData)
-            Spacer(Modifier.height(9.dp))
+            Spacer(Modifier.height(Dimension.Spacing.space9))
             DataActionRow("Роли и права", onOpenRoles)
-            Spacer(Modifier.height(9.dp))
+            Spacer(Modifier.height(Dimension.Spacing.space9))
             DataActionRow("Резервная копия", onCreateBackup)
-            Spacer(Modifier.height(110.dp))
+            Spacer(Modifier.height(Dimension.Layout.adminActionsBottom))
             AppCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Журнал событий",
@@ -247,12 +248,12 @@ internal fun AdminDataScreen(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(Dimension.Spacing.large))
                 events.forEach { event ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp),
+                            .padding(vertical = Dimension.Spacing.small),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
@@ -284,7 +285,7 @@ private fun DataActionRow(
             .fillMaxWidth()
             .height(54.dp)
             .clickable(role = Role.Button, onClick = onClick),
-        contentPadding = 14.dp,
+        contentPadding = Dimension.Padding.card,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

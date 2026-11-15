@@ -13,7 +13,6 @@ enum class RouteStageType {
     Contract,
     Education,
     Employment,
-    Retention,
     Other,
 }
 

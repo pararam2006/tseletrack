@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.ui.theme.tseletrackInk
 import com.pararam2006.tseletrack.ui.theme.tseletrackMut
@@ -52,7 +53,7 @@ internal fun AppProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(Dimension.Padding.screen),
         ) {
             AppCard(
                 modifier = Modifier
@@ -77,33 +78,33 @@ internal fun AppProfileScreen(
                             fontWeight = FontWeight.Bold,
                         )
                     }
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(Dimension.Spacing.mediumLarge))
                     Text(
                         text = displayName,
                         color = tseletrackInk,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                     )
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(Dimension.Spacing.small))
                     Text(
                         text = role,
                         modifier = Modifier
-                            .background(tseletrackRedTint, RoundedCornerShape(12.dp))
-                            .padding(horizontal = 10.dp, vertical = 3.dp),
+                            .background(tseletrackRedTint, MaterialTheme.shapes.large)
+                            .padding(horizontal = Dimension.Spacing.mediumLarge, vertical = Dimension.Spacing.space3),
                         color = tseletrackRed,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
             }
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(Dimension.Spacing.largeExtra))
             rows.forEachIndexed { index, row ->
                 AppCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
                         .clickable(role = Role.Button) { onRowClick(index) },
-                    contentPadding = 13.dp,
+                    contentPadding = Dimension.Spacing.space13,
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -123,13 +124,13 @@ internal fun AppProfileScreen(
                         )
                     }
                 }
-                Spacer(Modifier.height(9.dp))
+                Spacer(Modifier.height(Dimension.Spacing.space9))
             }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(46.dp)
-                    .background(tseletrackWhite, RoundedCornerShape(12.dp))
+                    .background(tseletrackWhite, MaterialTheme.shapes.large)
                     .clickable(role = Role.Button, onClick = onLogout),
                 contentAlignment = Alignment.Center,
             ) {

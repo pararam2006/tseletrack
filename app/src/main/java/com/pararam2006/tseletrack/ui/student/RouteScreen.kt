@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,6 +27,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pararam2006.tseletrack.ui.theme.AppShapes
+import com.pararam2006.tseletrack.ui.theme.AppTextStyles
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.domain.student.RouteStage
 import com.pararam2006.tseletrack.domain.student.RouteStageStatus
@@ -69,13 +72,13 @@ internal fun RouteScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(Dimension.Padding.screen),
         ) {
             AppCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                contentPadding = 13.dp,
+                contentPadding = Dimension.Spacing.space13,
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -85,9 +88,7 @@ internal fun RouteScreen(
                     Text(
                         text = stringResource(R.string.route_card_title),
                         color = tseletrackInk,
-                        fontSize = 14.sp,
-                        lineHeight = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = AppTextStyles.sectionTitle,
                     )
                     Text(
                         text = "$progressPercent%",
@@ -96,9 +97,9 @@ internal fun RouteScreen(
                         fontWeight = FontWeight.Bold,
                     )
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(Dimension.Spacing.large))
                 AppProgressBar(percent = progressPercent)
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(Dimension.Spacing.small))
                 stages.forEachIndexed { index, stage ->
                     RouteStageItem(
                         stage = stage,
@@ -112,12 +113,12 @@ internal fun RouteScreen(
                     )
                 }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(Dimension.Spacing.large))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(44.dp)
-                    .background(tseletrackRed, RoundedCornerShape(12.dp))
+                    .background(tseletrackRed, MaterialTheme.shapes.large)
                     .clickable(role = Role.Button, onClick = onSignContract),
                 contentAlignment = Alignment.Center,
             ) {
@@ -163,7 +164,7 @@ private fun RouteStageItem(
             drawTopLine = !isFirst,
             drawBottomLine = !isLast,
         )
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(Dimension.Spacing.medium))
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center,
@@ -176,7 +177,7 @@ private fun RouteStageItem(
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
             )
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(Dimension.Spacing.xxs))
             RouteStageStatusPill(status = stage.status)
         }
         if (onClick != null) {
@@ -281,16 +282,14 @@ private fun RouteStageStatusPill(status: RouteStageStatus) {
         )
     }
     Box(
-        modifier = Modifier.background(background, RoundedCornerShape(20.dp)),
+        modifier = Modifier.background(background, AppShapes.pill),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
+            modifier = Modifier.padding(horizontal = Dimension.Spacing.mediumLarge, vertical = Dimension.Spacing.xxs),
             color = foreground,
-            fontSize = 10.sp,
-            lineHeight = 13.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = AppTextStyles.status,
         )
     }
 }

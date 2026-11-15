@@ -22,10 +22,10 @@ import androidx.compose.foundation.lazy.LazyLayoutScrollScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +50,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import com.pararam2006.tseletrack.ui.theme.AppShapes
+import com.pararam2006.tseletrack.ui.theme.AppTextStyles
+import com.pararam2006.tseletrack.ui.theme.Dimension
 import com.pararam2006.tseletrack.R
 import com.pararam2006.tseletrack.domain.student.AdmissionState
 import com.pararam2006.tseletrack.domain.student.AdmissionStatus
@@ -117,15 +120,14 @@ internal fun TargetOffersScreen(
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(Dimension.Padding.screen),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.large),
         ) {
             item {
                 Text(
                     text = stringResource(R.string.target_offers_intro),
                     color = tseletrackMut,
-                    fontSize = 12.sp,
-                    lineHeight = 17.sp,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
             state.catalogWarning?.let { warning ->
@@ -317,13 +319,13 @@ private fun AdmissionTrackingCard(
     val applicantCodeDescription = stringResource(R.string.admission_code_hint)
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         color = tseletrackWhite,
-        border = androidx.compose.foundation.BorderStroke(1.dp, tseletrackLine),
+        border = androidx.compose.foundation.BorderStroke(Dimension.Size.stroke, tseletrackLine),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(Dimension.Padding.screen),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.mediumLarge),
         ) {
             Text(
                 text = stringResource(R.string.admission_status_title),
@@ -334,8 +336,7 @@ private fun AdmissionTrackingCard(
             Text(
                 text = stringResource(R.string.admission_status_description),
                 color = tseletrackMut,
-                fontSize = 12.sp,
-                lineHeight = 17.sp,
+                style = MaterialTheme.typography.bodySmall,
             )
             status?.let { AdmissionStatusContent(it) }
             BasicTextField(
@@ -344,8 +345,8 @@ private fun AdmissionTrackingCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 48.dp)
-                    .background(tseletrackBg, RoundedCornerShape(10.dp))
-                    .border(1.dp, tseletrackLine, RoundedCornerShape(10.dp))
+                    .background(tseletrackBg, MaterialTheme.shapes.medium)
+                    .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.medium)
                     .semantics { contentDescription = applicantCodeDescription },
                 textStyle = TextStyle(color = tseletrackInk, fontSize = 14.sp),
                 cursorBrush = SolidColor(tseletrackRed),
@@ -355,7 +356,7 @@ private fun AdmissionTrackingCard(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 12.dp),
+                            .padding(horizontal = Dimension.Spacing.large),
                         contentAlignment = Alignment.CenterStart,
                     ) {
                         if (applicantCode.isEmpty()) {
@@ -369,7 +370,7 @@ private fun AdmissionTrackingCard(
                     }
                 },
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Dimension.Spacing.medium)) {
                 SmallAction(
                     text = stringResource(
                         if (isSaving) R.string.admission_saving else R.string.admission_save_code,
@@ -395,8 +396,7 @@ private fun AdmissionTrackingCard(
             Text(
                 text = stringResource(R.string.admission_code_privacy),
                 color = tseletrackMut,
-                fontSize = 10.sp,
-                lineHeight = 14.sp,
+                style = AppTextStyles.metricLabel,
             )
         }
     }
@@ -429,8 +429,8 @@ private fun AdmissionStatusContent(status: AdmissionStatus) {
         )
         Box(
             modifier = Modifier
-                .background(background, RoundedCornerShape(12.dp))
-                .padding(horizontal = 9.dp, vertical = 5.dp),
+                .background(background, MaterialTheme.shapes.large)
+                .padding(horizontal = Dimension.Spacing.space9, vertical = Dimension.Spacing.space5),
         ) {
             Text(
                 text = stringResource(label),
@@ -470,7 +470,7 @@ private fun TargetOfferCard(
     val externalLinks = offer.externalLinks()
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = MaterialTheme.shapes.extraLarge,
         color = tseletrackWhite,
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
@@ -478,8 +478,8 @@ private fun TargetOfferCard(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp),
+            modifier = Modifier.padding(Dimension.Padding.screen),
+            verticalArrangement = Arrangement.spacedBy(Dimension.Spacing.space7),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -496,17 +496,15 @@ private fun TargetOfferCard(
                     },
                     modifier = Modifier.weight(1f),
                     color = tseletrackInk,
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = AppTextStyles.cardTitle,
                 )
                 if (isSelected) {
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(Dimension.Spacing.medium))
                     Text(
                         text = stringResource(R.string.target_offer_selected),
                         modifier = Modifier
-                            .background(tseletrackRedTint, RoundedCornerShape(10.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                            .background(tseletrackRedTint, MaterialTheme.shapes.medium)
+                            .padding(horizontal = Dimension.Spacing.medium, vertical = Dimension.Spacing.xs),
                         color = tseletrackRed,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -581,8 +579,7 @@ private fun DetailLine(label: String, value: String) {
     Text(
         text = "$label: $value",
         color = tseletrackMut,
-        fontSize = 11.sp,
-        lineHeight = 15.sp,
+        style = AppTextStyles.caption,
     )
 }
 
@@ -592,12 +589,11 @@ private fun NoticeCard(text: String, background: Color, foreground: Color) {
         text = text,
         modifier = Modifier
             .fillMaxWidth()
-            .background(background, RoundedCornerShape(12.dp))
-            .border(1.dp, tseletrackLine, RoundedCornerShape(12.dp))
-            .padding(12.dp),
+            .background(background, MaterialTheme.shapes.large)
+            .border(Dimension.Size.stroke, tseletrackLine, MaterialTheme.shapes.large)
+            .padding(Dimension.Spacing.large),
         color = foreground,
-        fontSize = 12.sp,
-        lineHeight = 17.sp,
+        style = MaterialTheme.typography.bodySmall,
     )
 }
 
@@ -622,10 +618,10 @@ private fun SmallAction(
     Box(
         modifier = modifier
             .heightIn(min = 48.dp)
-            .background(background, RoundedCornerShape(9.dp))
-            .border(1.dp, if (isPrimary && enabled) tseletrackRed else tseletrackLine, RoundedCornerShape(9.dp))
+            .background(background, AppShapes.outlinedButton)
+            .border(Dimension.Size.stroke, if (isPrimary && enabled) tseletrackRed else tseletrackLine, AppShapes.outlinedButton)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 13.dp),
+            .padding(horizontal = Dimension.Spacing.space13),
         contentAlignment = Alignment.Center,
     ) {
         Text(
